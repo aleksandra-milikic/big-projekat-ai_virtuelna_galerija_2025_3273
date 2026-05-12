@@ -13,3 +13,69 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+model User {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  password  String
+  role      Role     @default(USER)
+
+  artworks  Artwork[]
+  favorites Favorite[]
+
+  createdAt DateTime @default(now())
+}
+
+model Artwork {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  imageUrl    String
+
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+
+  galleryId   String?
+  gallery     Gallery? @relation(fields: [galleryId], references: [id])
+
+  favorites   Favorite[]
+
+  createdAt   DateTime @default(now())
+}
+
+model Gallery {
+  id        String    @id @default(cuid())
+  name      String
+  location  String?
+
+  artworks  Artwork[]
+
+  createdAt DateTime @default(now())
+}
+
+model Exhibition {
+  id        String   @id @default(cuid())
+  title     String
+  isActive  Boolean  @default(true)
+
+  createdAt DateTime @default(now())
+}
+
+model Favorite {
+  id        String @id @default(cuid())
+
+  userId    String
+  user      User   @relation(fields: [userId], references: [id])
+
+  artworkId String
+  artwork   Artwork @relation(fields: [artworkId], references: [id])
+
+  createdAt DateTime @default(now())
+}
+
+enum Role {
+  USER
+  ADMIN
+  CURATOR
+}
