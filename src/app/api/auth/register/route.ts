@@ -1,8 +1,6 @@
 import { NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
-
-const prisma = new PrismaClient();
+import { prisma } from "@/lib/prisma";
 
 export async function POST(req: Request) {
   try {
@@ -32,10 +30,15 @@ export async function POST(req: Request) {
     });
 
     return NextResponse.json(
-      { message: "User created", user },
+      {
+        message: "User created",
+        user,
+      },
       { status: 201 }
     );
   } catch (error) {
+    console.log(error);
+
     return NextResponse.json(
       { message: "Server error" },
       { status: 500 }

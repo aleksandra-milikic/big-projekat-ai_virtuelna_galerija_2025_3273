@@ -1,13 +1,12 @@
 import { NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-
-const prisma = new PrismaClient();
+import { prisma } from "@/lib/prisma";
 
 export async function POST(req: Request) {
   try {
     const body = await req.json();
+
     const { email, password } = body;
 
     const user = await prisma.user.findUnique({
@@ -34,9 +33,14 @@ export async function POST(req: Request) {
     }
 
     const token = jwt.sign(
-      { userId: user.id, role: user.role },
+      {
+        userId: user.id,
+        role: user.role,
+      },
       process.env.JWT_SECRET!,
-      { expiresIn: "1d" }
+      {
+        expiresIn: "1d",
+      }
     );
 
     return NextResponse.json({
@@ -50,6 +54,8 @@ export async function POST(req: Request) {
       },
     });
   } catch (error) {
+    console.log(error);
+
     return NextResponse.json(
       { message: "Server error" },
       { status: 500 }
