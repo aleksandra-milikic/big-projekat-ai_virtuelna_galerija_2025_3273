@@ -11,11 +11,9 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
 
   const handleLogin = async () => {
     setError("");
-    setLoading(true);
 
     try {
       const res = await fetch("/api/auth/login", {
@@ -26,26 +24,20 @@ export default function LoginPage() {
         body: JSON.stringify({ email, password }),
       });
 
-      let data: any = {};
-
-      try {
-        data = await res.json();
-      } catch {
-        data = { message: "Server returned invalid response" };
-      }
+      const data = await res.json();
 
       if (!res.ok) {
-        setError(data.message || "Login failed");
+        setError(data.message);
         return;
       }
 
+  
       localStorage.setItem("token", data.token);
-      router.push("/gallery");
 
+      
+      router.push("/gallery");
     } catch (err) {
-      setError("Network or server error");
-    } finally {
-      setLoading(false);
+      setError("Server error");
     }
   };
 
@@ -68,10 +60,7 @@ export default function LoginPage() {
 
       {error && <p className="text-red-500">{error}</p>}
 
-      <Button
-        label={loading ? "Logging in..." : "Login"}
-        onClick={handleLogin}
-      />
+      <Button label="Login" onClick={handleLogin} />
     </div>
   );
 }

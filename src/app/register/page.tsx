@@ -12,11 +12,9 @@ export default function RegisterPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
 
   const handleRegister = async () => {
     setError("");
-    setLoading(true);
 
     try {
       const res = await fetch("/api/auth/register", {
@@ -27,26 +25,16 @@ export default function RegisterPage() {
         body: JSON.stringify({ name, email, password }),
       });
 
-
-      let data: any = {};
-
-      try {
-        data = await res.json();
-      } catch {
-        data = { message: "Server returned invalid response" };
-      }
+      const data = await res.json();
 
       if (!res.ok) {
-        setError(data.message || "Registration failed");
+        setError(data.message);
         return;
       }
 
       router.push("/login");
-
     } catch (err) {
-      setError("Network or server error");
-    } finally {
-      setLoading(false);
+      setError("Server error");
     }
   };
 
@@ -75,10 +63,7 @@ export default function RegisterPage() {
 
       {error && <p className="text-red-500">{error}</p>}
 
-      <Button
-        label={loading ? "Creating account..." : "Register"}
-        onClick={handleRegister}
-      />
+      <Button label="Register" onClick={handleRegister} />
     </div>
   );
 }
