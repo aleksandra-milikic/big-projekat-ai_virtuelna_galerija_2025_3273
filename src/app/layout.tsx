@@ -4,6 +4,7 @@ import "./globals.css";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+<Link href="/dashboard">Dashboard</Link>
 
 export default function RootLayout({
   children,

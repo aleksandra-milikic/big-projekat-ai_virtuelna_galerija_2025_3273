@@ -65,10 +65,10 @@ model Favorite {
   id        String @id @default(cuid())
 
   userId    String
-  user      User   @relation(fields: [userId], references: [id])
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   artworkId String
-  artwork   Artwork @relation(fields: [artworkId], references: [id])
+  artwork   Artwork @relation(fields: [artworkId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
 }

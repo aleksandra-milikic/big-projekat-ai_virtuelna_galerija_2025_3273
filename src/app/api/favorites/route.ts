@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 import jwt from "jsonwebtoken";
 import { prisma } from "@/lib/prisma";
 
-// GET favorites (po user-u)
 export async function GET(req: Request) {
   try {
     const authHeader = req.headers.get("authorization");
@@ -30,7 +29,6 @@ export async function GET(req: Request) {
   }
 }
 
-// ❤️ TOGGLE FAVORITE (OVO TI FALI)
 export async function POST(req: Request) {
   try {
     const authHeader = req.headers.get("authorization");
@@ -51,7 +49,6 @@ export async function POST(req: Request) {
       },
     });
 
-    // ako već postoji → briši (unlike)
     if (existing) {
       await prisma.favorite.delete({
         where: { id: existing.id },
@@ -60,7 +57,6 @@ export async function POST(req: Request) {
       return NextResponse.json({ liked: false });
     }
 
-    // ako ne postoji → napravi (like)
     await prisma.favorite.create({
       data: {
         userId: decoded.userId,

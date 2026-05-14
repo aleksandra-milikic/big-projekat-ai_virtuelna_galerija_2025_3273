@@ -1,13 +1,13 @@
 import { NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
 import { getUserFromToken } from "@/lib/auth";
-
-const prisma = new PrismaClient();
+import { prisma } from "@/lib/prisma";
 
 export async function PUT(
   req: Request,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await context.params;
+
   const user = getUserFromToken(req);
 
   if (!user) {
@@ -21,13 +21,8 @@ export async function PUT(
   const body = await req.json();
 
   const updatedArtwork = await prisma.artwork.update({
-    where: { id: params.id },
-    data: {
-      title: body.title,
-      description: body.description,
-      imageUrl: body.imageUrl,
-      galleryId: body.galleryId,
-    },
+    where: { id },
+    data: body,
   });
 
   return NextResponse.json(updatedArtwork);
@@ -35,8 +30,10 @@ export async function PUT(
 
 export async function DELETE(
   req: Request,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await context.params;
+
   const user = getUserFromToken(req);
 
   if (!user || user.role !== "ADMIN") {
@@ -44,7 +41,7 @@ export async function DELETE(
   }
 
   await prisma.artwork.delete({
-    where: { id: params.id },
+    where: { id },
   });
 
   return NextResponse.json({

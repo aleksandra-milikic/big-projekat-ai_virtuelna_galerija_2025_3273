@@ -22,7 +22,6 @@ export default function Card({
   const [open, setOpen] = useState(false);
   const [zoom, setZoom] = useState(1);
 
-  // ESC zatvaranje
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
