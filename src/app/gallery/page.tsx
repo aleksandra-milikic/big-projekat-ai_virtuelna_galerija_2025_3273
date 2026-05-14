@@ -21,7 +21,23 @@ export default function GalleryPage() {
   const [error, setError] = useState("");
 
   const [likedIds, setLikedIds] = useState<string[]>([]);
+  const [search, setSearch] = useState("");
 
+  
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+
+  
+  const filteredArtworks = artworks.filter((art) => {
+    const q = search.toLowerCase();
+
+    return (
+      art.title.toLowerCase().includes(q) ||
+      art.description?.toLowerCase().includes(q)
+    );
+  });
+
+  
   useEffect(() => {
     const token = localStorage.getItem("token");
 
@@ -32,12 +48,13 @@ export default function GalleryPage() {
     }
   }, []);
 
-  const fetchArtworks = async () => {
+  
+  const fetchArtworks = async (pageNumber = 1) => {
     try {
       const token = localStorage.getItem("token");
 
       const [artRes, favRes] = await Promise.all([
-        fetch("/api/artworks"),
+        fetch(`/api/artworks?page=${pageNumber}`),
 
         fetch("/api/favorites", {
           headers: {
@@ -49,28 +66,64 @@ export default function GalleryPage() {
       const artData = await artRes.json();
       const favData = await favRes.json();
 
-      setArtworks(artData);
+      
+      if (artData.length === 0) {
+        setHasMore(false);
+        return;
+      }
 
+      
+      setArtworks((prev) => [...prev, ...artData]);
+
+      
       setLikedIds(
         favData.map((f: any) => f.artworkId)
       );
-    } catch (err) {
+    } catch {
       setError("Greška pri učitavanju galerije");
     } finally {
       setLoading(false);
     }
   };
 
+  
   useEffect(() => {
     if (authorized) {
-      fetchArtworks();
+      fetchArtworks(page);
     }
-  }, [authorized]);
+  }, [authorized, page]);
 
+  
+  useEffect(() => {
+    const observer = new IntersectionObserver((entries) => {
+      if (entries[0].isIntersecting && hasMore) {
+        setPage((prev) => prev + 1);
+      }
+    });
+
+    const target = document.getElementById("scroll-end");
+
+    if (target) {
+      observer.observe(target);
+    }
+
+    return () => observer.disconnect();
+  }, [hasMore]);
+
+  
   const toggleFavorite = async (artworkId: string) => {
-    try {
-      const token = localStorage.getItem("token");
+    const token = localStorage.getItem("token");
 
+    const isLiked = likedIds.includes(artworkId);
+
+    
+    setLikedIds((prev) =>
+      isLiked
+        ? prev.filter((id) => id !== artworkId)
+        : [...prev, artworkId]
+    );
+
+    try {
       const res = await fetch("/api/favorites", {
         method: "POST",
         headers: {
@@ -82,20 +135,32 @@ export default function GalleryPage() {
 
       const data = await res.json();
 
+     
+      if (data.liked !== !isLiked) {
+        setLikedIds((prev) =>
+          data.liked
+            ? [...prev, artworkId]
+            : prev.filter((id) => id !== artworkId)
+        );
+      }
+    } catch (err) {
+      console.log(err);
+
+     
       setLikedIds((prev) =>
-        data.liked
+        isLiked
           ? [...prev, artworkId]
           : prev.filter((id) => id !== artworkId)
       );
-    } catch (err) {
-      console.log(err);
     }
   };
 
+  
   if (!authorized) {
     return null;
   }
 
+  
   if (loading) {
     return (
       <p className="text-center mt-10">
@@ -104,6 +169,7 @@ export default function GalleryPage() {
     );
   }
 
+  
   if (error) {
     return (
       <p className="text-center text-red-500 mt-10">
@@ -118,13 +184,23 @@ export default function GalleryPage() {
         Gallery
       </h1>
 
-      {artworks.length === 0 ? (
+      {/* SEARCH */}
+      <input
+        type="text"
+        placeholder="Search artworks..."
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+        className="mb-4 w-full max-w-md border px-3 py-2 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500"
+      />
+
+      {/* NO RESULTS */}
+      {filteredArtworks.length === 0 ? (
         <p className="text-gray-500">
-          Nema umetničkih djela
+          No results found
         </p>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {artworks.map((art) => (
+          {filteredArtworks.map((art) => (
             <Card
               key={art.id}
               id={art.id}
@@ -137,6 +213,9 @@ export default function GalleryPage() {
           ))}
         </div>
       )}
+
+      {/* INFINITE SCROLL TARGET */}
+      <div id="scroll-end" className="h-10" />
     </div>
   );
 }
