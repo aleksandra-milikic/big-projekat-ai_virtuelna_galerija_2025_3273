@@ -4,7 +4,8 @@ import "./globals.css";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-<Link href="/dashboard">Dashboard</Link>
+import { Toaster } from "react-hot-toast";
+import { jwtDecode } from "jwt-decode";
 
 export default function RootLayout({
   children,
@@ -14,11 +15,29 @@ export default function RootLayout({
   const router = useRouter();
 
   const [loggedIn, setLoggedIn] = useState(false);
+  const [role, setRole] = useState<string>("");
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
+    const updateAuth = () => {
+  const token = localStorage.getItem("token");
 
-    setLoggedIn(!!token);
+  setLoggedIn(!!token);
+
+  if (token) {
+    const decoded: any = jwtDecode(token);
+    setRole(decoded.role);
+  } else {
+    setRole("");
+  }
+};
+
+    updateAuth();
+
+    window.addEventListener("authChange", updateAuth);
+
+    return () => {
+      window.removeEventListener("authChange", updateAuth);
+    };
   }, []);
 
   const handleLogout = async () => {
@@ -29,7 +48,7 @@ export default function RootLayout({
 
       localStorage.removeItem("token");
 
-      setLoggedIn(false);
+      window.dispatchEvent(new Event("authChange"));
 
       router.push("/login");
     } catch (err) {
@@ -44,10 +63,7 @@ export default function RootLayout({
         {/* NAVBAR */}
         <header className="w-full border-b px-6 py-4 flex justify-between items-center">
 
-          <Link
-            href="/"
-            className="font-bold text-indigo-600 text-xl"
-          >
+          <Link href="/" className="font-bold text-indigo-600 text-xl">
             IVG Galerija
           </Link>
 
@@ -59,9 +75,9 @@ export default function RootLayout({
               <>
                 <Link href="/gallery">Gallery</Link>
 
-                <Link href="/favorites">
-                  Favorites
-                </Link>
+                {role === "USER" && (
+                     <Link href="/favorites">Favorites</Link>
+                )}
 
                 <button
                   onClick={handleLogout}
@@ -74,11 +90,10 @@ export default function RootLayout({
               <>
                 <Link href="/login">Login</Link>
 
-                <Link href="/register">
-                  Register
-                </Link>
+                <Link href="/register">Register</Link>
               </>
             )}
+
           </nav>
         </header>
 
@@ -91,6 +106,8 @@ export default function RootLayout({
         <footer className="border-t px-6 py-4 text-center text-sm text-gray-500">
           © {new Date().getFullYear()} IVG
         </footer>
+
+        <Toaster position="top-right" />
 
       </body>
     </html>

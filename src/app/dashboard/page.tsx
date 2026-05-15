@@ -64,12 +64,7 @@ export default function DashboardPage() {
 
       {/* USER */}
       {role === "USER" && (
-        <div className="p-6 border rounded-xl">
-          <h2 className="font-bold text-lg">USER PANEL</h2>
-          <p className="text-gray-600">
-            Pregled galerije i lajkovanje umjetničkih djela.
-          </p>
-        </div>
+        <Link href="/profile">Profile</Link>
       )}
 
       {/* CURATOR */}
@@ -87,23 +82,6 @@ export default function DashboardPage() {
           >
             ➕ Add Artwork
           </Link>
-        </div>
-      )}
-
-      {/* ADMIN */}
-      {role === "ADMIN" && (
-        <div className="p-6 border rounded-xl bg-red-50">
-          <h2 className="font-bold text-lg">ADMIN PANEL</h2>
-
-          <p className="text-gray-600">
-            Potpuna kontrola sistema.
-          </p>
-
-          <ul className="mt-4 space-y-2 text-sm">
-            <li>✔ Upravljanje korisnicima</li>
-            <li>✔ Brisanje artwork-a</li>
-            <li>✔ Moderacija sadržaja</li>
-          </ul>
         </div>
       )}
     </div>

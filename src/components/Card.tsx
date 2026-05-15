@@ -8,6 +8,7 @@ type CardProps = {
   description?: string;
   imageUrl?: string;
   liked: boolean;
+  role: "USER" | "ADMIN" | "CURATOR";
   onToggle: (id: string) => void;
 };
 
@@ -17,6 +18,7 @@ export default function Card({
   description,
   imageUrl,
   liked,
+  role,
   onToggle,
 }: CardProps) {
   const [open, setOpen] = useState(false);
@@ -52,14 +54,17 @@ export default function Card({
           <p className="text-sm text-gray-600">{description}</p>
         )}
 
-        <button
-          onClick={() => onToggle(id)}
-          className={`absolute top-2 right-2 text-2xl transition ${
-            liked ? "text-red-500 scale-110" : "text-gray-400"
-          }`}
-        >
-          {liked ? "❤️" : "🤍"}
-        </button>
+        {/* ❤️ SAMO ZA USERA */}
+        {role === "USER" && (
+          <button
+            onClick={() => onToggle(id)}
+            className={`absolute top-2 right-2 text-2xl transition ${
+              liked ? "text-red-500 scale-110" : "text-gray-400"
+            }`}
+          >
+            {liked ? "❤️" : "🤍"}
+          </button>
+        )}
       </div>
 
       {/* MODAL */}
@@ -71,33 +76,12 @@ export default function Card({
             setZoom(1);
           }}
         >
-          <div
-            className="relative"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* zoom controls */}
-            <div className="absolute top-2 right-2 flex gap-2 z-50">
-              <button
-                className="bg-white px-2 py-1 rounded"
-                onClick={() => setZoom((z) => Math.min(z + 0.2, 3))}
-              >
-                +
-              </button>
-              <button
-                className="bg-white px-2 py-1 rounded"
-                onClick={() => setZoom((z) => Math.max(z - 0.2, 1))}
-              >
-                -
-              </button>
-            </div>
-
+          <div onClick={(e) => e.stopPropagation()}>
             <img
               src={imageUrl}
               alt={title}
-              style={{
-                transform: `scale(${zoom})`,
-              }}
-              className="max-w-[90vw] max-h-[90vh] object-contain rounded transition-transform duration-200"
+              style={{ transform: `scale(${zoom})` }}
+              className="max-w-[90vw] max-h-[90vh] object-contain rounded"
             />
           </div>
         </div>

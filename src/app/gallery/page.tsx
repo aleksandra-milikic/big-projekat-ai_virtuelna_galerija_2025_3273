@@ -4,6 +4,9 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { jwtDecode } from "jwt-decode";
 import Card from "@/components/Card";
+import DeleteModal from "@/components/DeleteModal";
+import toast from "react-hot-toast";
+import { Role } from "@prisma/client";
 
 type Artwork = {
   id: string;
@@ -21,7 +24,7 @@ export default function GalleryPage() {
   const router = useRouter();
 
   const [authorized, setAuthorized] = useState(false);
-  const [role, setRole] = useState<string>("");
+  const [role, setRole] = useState<Role>("USER");
 
   const [artworks, setArtworks] = useState<Artwork[]>([]);
   const [loading, setLoading] = useState(true);
@@ -33,6 +36,11 @@ export default function GalleryPage() {
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
 
+  const [selectedArtworkId, setSelectedArtworkId] =
+  useState<string | null>(null);
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
   useEffect(() => {
     const token = localStorage.getItem("token");
 
@@ -43,7 +51,7 @@ export default function GalleryPage() {
 
     try {
       const decoded = jwtDecode<DecodedToken>(token);
-      setRole(decoded.role);
+      setRole(decoded.role); 
       setAuthorized(true);
     } catch {
       router.push("/login");
@@ -75,12 +83,19 @@ export default function GalleryPage() {
       const artData = await artRes.json();
       const favData = await favRes.json();
 
-      if (artData.length === 0) {
-        setHasMore(false);
-        return;
+      if (artData.length < 6) {
+         setHasMore(false);
       }
 
-      setArtworks((prev) => [...prev, ...artData]);
+      setArtworks((prev) => {
+  const existingIds = new Set(prev.map((p) => p.id));
+
+  const newItems = artData.filter(
+    (a: Artwork) => !existingIds.has(a.id)
+  );
+
+  return [...prev, ...newItems];
+});
 
       setLikedIds(favData.map((f: any) => f.artworkId));
     } catch {
@@ -91,19 +106,12 @@ export default function GalleryPage() {
   };
 
   useEffect(() => {
-    if (authorized) {
-      fetchArtworks(page);
-    }
-  }, [authorized, page]);
+  if (!authorized) return;
+  fetchArtworks(page);
+}, [authorized, page]);
 
   const deleteArtwork = async (artworkId: string) => {
   const token = localStorage.getItem("token");
-
-  const confirmed = confirm(
-    "Da li ste sigurni da želite da obrišete artwork?"
-  );
-
-  if (!confirmed) return;
 
   try {
     const res = await fetch(`/api/artworks/${artworkId}`, {
@@ -114,12 +122,16 @@ export default function GalleryPage() {
     });
 
     if (res.ok) {
-      setArtworks((prev) =>
-        prev.filter((art) => art.id !== artworkId)
-      );
-    }
+  setArtworks((prev) =>
+    prev.filter((art) => art.id !== artworkId)
+  );
+
+  toast.success("Artwork deleted!");
+} else {
+  toast.error("Delete failed!");
+}
   } catch (error) {
-    console.log(error);
+    toast.error("Something went wrong");
   }
 };
 
@@ -130,12 +142,6 @@ export default function GalleryPage() {
 
     const isLiked = likedIds.includes(artworkId);
 
-    setLikedIds((prev) =>
-      isLiked
-        ? prev.filter((id) => id !== artworkId)
-        : [...prev, artworkId]
-    );
-
     await fetch("/api/favorites", {
       method: "POST",
       headers: {
@@ -144,11 +150,26 @@ export default function GalleryPage() {
       },
       body: JSON.stringify({ artworkId }),
     });
+
+    setLikedIds((prev) =>
+      isLiked
+        ? prev.filter((id) => id !== artworkId)
+        : [...prev, artworkId]
+    );
+
+    
   };
 
   if (!authorized) return null;
 
-  if (loading) return <p className="text-center mt-10">Loading gallery...</p>;
+  if (loading)
+  return (
+    <div className="flex justify-center mt-10">
+      <div className="animate-pulse text-gray-500">
+        Loading gallery...
+      </div>
+    </div>
+  );
 
   if (error)
     return <p className="text-center text-red-500 mt-10">{error}</p>;
@@ -188,18 +209,22 @@ export default function GalleryPage() {
     <div key={art.id} className="relative">
 
       <Card
-        id={art.id}
-        title={art.title}
-        description={art.description}
-        imageUrl={art.imageUrl}
-        liked={likedIds.includes(art.id)}
-        onToggle={toggleFavorite}
-      />
+  id={art.id}
+  title={art.title}
+  description={art.description}
+  imageUrl={art.imageUrl}
+  liked={likedIds.includes(art.id)}
+  onToggle={toggleFavorite}
+  role={role}
+/>
 
       {/* ADMIN DELETE */}
       {role === "ADMIN" && (
         <button
-          onClick={() => deleteArtwork(art.id)}
+          onClick={() => {
+  setSelectedArtworkId(art.id);
+  setIsModalOpen(true);
+}}
           className="absolute top-2 right-2 bg-red-500 text-white px-2 py-1 rounded text-xs"
         >
           🗑 Delete
@@ -211,6 +236,18 @@ export default function GalleryPage() {
 </div>
 
       <div id="scroll-end" className="h-10" />
+      <DeleteModal
+  isOpen={isModalOpen}
+  onClose={() => setIsModalOpen(false)}
+  onConfirm={async () => {
+    if (!selectedArtworkId) return;
+
+    await deleteArtwork(selectedArtworkId);
+
+    setIsModalOpen(false);
+    setSelectedArtworkId(null);
+  }}
+/>
     </div>
   );
 }

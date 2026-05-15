@@ -33,9 +33,9 @@ export default function LoginPage() {
 
   
       localStorage.setItem("token", data.token);
-
+      window.dispatchEvent(new Event("authChange"));
       
-      router.push("/gallery");
+      router.push("/");
     } catch (err) {
       setError("Server error");
     }
