@@ -4,12 +4,24 @@ import { getUserFromToken } from "@/lib/auth";
 
 const prisma = new PrismaClient();
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
+    const { searchParams } = new URL(req.url);
+
+    const page = Number(searchParams.get("page") || 1);
+    const limit = 15;
+
+    const skip = (page - 1) * limit;
+
     const artworks = await prisma.artwork.findMany({
+      skip,
+      take: limit,
       include: {
         user: true,
         gallery: true,
+      },
+      orderBy: {
+        createdAt: "desc",
       },
     });
 

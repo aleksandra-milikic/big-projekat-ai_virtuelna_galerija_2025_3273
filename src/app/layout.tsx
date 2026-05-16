@@ -18,27 +18,25 @@ export default function RootLayout({
   const [role, setRole] = useState<string>("");
 
   useEffect(() => {
-    const updateAuth = () => {
-  const token = localStorage.getItem("token");
+  const updateAuth = () => {
+    const token = localStorage.getItem("token");
 
-  setLoggedIn(!!token);
+    setLoggedIn(!!token);
 
-  if (token) {
-    const decoded: any = jwtDecode(token);
-    setRole(decoded.role);
-  } else {
-    setRole("");
-  }
-};
+    if (token) {
+      const decoded: any = jwtDecode(token);
+      setRole(decoded.role);
+    } else {
+      setRole("");
+    }
+  };
 
-    updateAuth();
+  updateAuth();
 
-    window.addEventListener("authChange", updateAuth);
+  const interval = setInterval(updateAuth, 300);
 
-    return () => {
-      window.removeEventListener("authChange", updateAuth);
-    };
-  }, []);
+  return () => clearInterval(interval);
+}, []);
 
   const handleLogout = async () => {
     try {
@@ -58,7 +56,7 @@ export default function RootLayout({
 
   return (
     <html lang="en">
-      <body className="min-h-screen flex flex-col">
+      <body className="min-h-screen flex flex-col relative">
 
         {/* NAVBAR */}
         <header className="w-full border-b px-6 py-4 flex justify-between items-center">
@@ -67,7 +65,7 @@ export default function RootLayout({
             IVG Galerija
           </Link>
 
-          <nav className="flex gap-4 text-sm items-center">
+          <nav className="flex flex-wrap gap-4 text-sm items-center justify-end">
 
             <Link href="/">Home</Link>
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 
 type CardProps = {
   id: string;
@@ -33,33 +34,47 @@ export default function Card({
     };
 
     window.addEventListener("keydown", handleKey);
-    return () => window.removeEventListener("keydown", handleKey);
+
+    return () =>
+      window.removeEventListener("keydown", handleKey);
   }, []);
 
   return (
     <>
       {/* CARD */}
-      <div className="border rounded-lg p-4 shadow relative">
+      <div className="border rounded-lg p-4 shadow transition-all duration-200 hover:shadow-lg hover:-translate-y-1 relative">
         {imageUrl && (
-          <img
-            src={imageUrl}
+          <div
             onClick={() => setOpen(true)}
-            className="w-full h-48 object-contain bg-gray-100 rounded cursor-pointer hover:scale-[1.02] transition"
-          />
+            className="relative w-full h-48 bg-gray-100 rounded overflow-hidden cursor-pointer transition-transform duration-200 hover:scale-[1.03]"
+          >
+            <Image
+             src={imageUrl}
+             alt={title}
+             width={400}
+             height={300}
+             unoptimized
+             loading="lazy"
+             className="object-contain w-full h-48"
+           />
+          </div>
         )}
 
         <h2 className="font-bold mt-2">{title}</h2>
 
         {description && (
-          <p className="text-sm text-gray-600">{description}</p>
+          <p className="text-sm text-gray-600">
+            {description}
+          </p>
         )}
 
         {/* ❤️ SAMO ZA USERA */}
         {role === "USER" && (
           <button
             onClick={() => onToggle(id)}
-            className={`absolute top-2 right-2 text-2xl transition ${
-              liked ? "text-red-500 scale-110" : "text-gray-400"
+            className={`absolute top-2 right-2 text-2xl 
+             transition-transform duration-200 hover:scale-125 active:scale-90 ${
+             liked ? "text-red-500 scale-110" : "text-gray-400"
             }`}
           >
             {liked ? "❤️" : "🤍"}
@@ -70,18 +85,22 @@ export default function Card({
       {/* MODAL */}
       {open && imageUrl && (
         <div
-          className="fixed inset-0 bg-black/80 flex items-center justify-center z-50"
+          className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 transition-opacity duration-200"
           onClick={() => {
             setOpen(false);
             setZoom(1);
           }}
         >
-          <div onClick={(e) => e.stopPropagation()}>
-            <img
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="relative w-[90vw] h-[90vh]"
+          >
+            <Image
               src={imageUrl}
               alt={title}
+              fill
+              className="object-contain rounded"
               style={{ transform: `scale(${zoom})` }}
-              className="max-w-[90vw] max-h-[90vh] object-contain rounded"
             />
           </div>
         </div>

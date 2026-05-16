@@ -33,7 +33,7 @@ export default function LoginPage() {
 
   
       localStorage.setItem("token", data.token);
-      window.dispatchEvent(new Event("authChange"));
+
       
       router.push("/");
     } catch (err) {

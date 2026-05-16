@@ -17,7 +17,7 @@ export default function Button({
     <button
       type={type}
       onClick={onClick}
-      className={`px-4 py-2 rounded bg-indigo-600 text-white hover:bg-indigo-700 transition ${className}`}
+      className={`px-4 py-2 rounded bg-indigo-600 text-white hover:bg-indigo-700 transition-colors duration-200 active:scale-95 ${className}`}
     >
       {label}
     </button>

@@ -100,6 +100,7 @@ export default function FavoritesPage() {
               imageUrl={art.imageUrl}
               liked={true}
               onToggle={() => {}}
+              role="USER"
             />
           ))}
         </div>
