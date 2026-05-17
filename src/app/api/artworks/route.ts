@@ -1,8 +1,6 @@
 import { NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "@/lib/prisma";
 import { getUserFromToken } from "@/lib/auth";
-
-const prisma = new PrismaClient();
 
 export async function GET(req: Request) {
   try {
@@ -52,6 +50,13 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json();
+
+    if (!body.title || !body.imageUrl) {
+  return NextResponse.json(
+    { message: "Title and imageUrl are required" },
+    { status: 400 }
+  );
+}
 
 const {
   title,

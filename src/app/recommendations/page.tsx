@@ -1,99 +1,149 @@
-"use client"
+"use client";
 
-import { useEffect, useState } from "react"
-import Card from "@/components/Card"
+import { useEffect, useState } from "react";
+import Card from "@/components/Card";
+
+type Artwork = {
+  id: string;
+  title: string;
+  description?: string;
+  imageUrl: string;
+  score?: number;
+};
 
 export default function RecommendationsPage() {
-  const [items, setItems] = useState<any[]>([])
+  const [items, setItems] = useState<Artwork[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     const fetchData = async () => {
-      const token = localStorage.getItem("token")
+      try {
+        setLoading(true);
 
-      const res = await fetch("/api/recommendations", {
-        headers: {
-          Authorization: `Bearer ${token}`
+        const token = localStorage.getItem("token");
+
+        const res = await fetch("/api/recommendations", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (!res.ok) {
+          setError("Failed to load recommendations");
+          setItems([]);
+          return;
         }
-      })
 
-      const data = await res.json()
-      const filtered = (data || []).filter(
-  (item: any) => item.score > 0
-)
+        const data = await res.json();
 
-setItems(filtered)
-    }
+        const filtered = (data || []).filter(
+          (item: Artwork) => item.score > 0
+        );
 
-    fetchData()
-  }, [])
+        setItems(filtered);
+      } catch (err) {
+        console.log(err);
+        setError("Something went wrong");
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  if (!items) return null
+    fetchData();
+  }, []);
 
-if (items.length === 0) {
-  return (
-    <div className="text-center mt-10 text-gray-500">
-      You don’t have enough activity yet.
-      <br />
-      ❤️ Like artworks in Gallery to get recommendations
-    </div>
-  )
-}
+  if (loading) {
+    return (
+      <p className="text-center mt-10 text-gray-500">
+        Loading recommendations...
+      </p>
+    );
+  }
 
-  const strong = items.filter((i: any) => i.score > 2)
-  const weak = items.filter((i: any) => i.score <= 2)
+  if (error) {
+    return (
+      <p className="text-center mt-10 text-red-500">
+        {error}
+      </p>
+    );
+  }
+
+  if (items.length === 0) {
+    return (
+      <div className="text-center mt-10 text-gray-500">
+        Nemate još dovoljno aktivnosti.
+        <br />
+        ❤️ Označite umjetnička djela u galeriji kao omiljena kako biste dobili preporuke.
+      </div>
+    );
+  }
+
+  const strong = items.filter((i) => (i.score ?? 0) > 2);
+  const weak = items.filter((i) => (i.score ?? 0) <= 2);
 
   return (
     <div className="p-4">
-
       <h1 className="text-2xl font-bold">
-        Recommended for you
+        Preporučeno za vas
       </h1>
 
-      <p className="text-gray-500">
-        Based on your liked artworks
+      <p className="text-gray-500 mb-4">
+        Na osnovu vaših omiljenih umjetničkih djela
       </p>
 
-      {/* STRONG */}
-      <h2 className="text-xl font-bold mt-6 mb-2">
-        🔥 Top picks for you
-      </h2>
+      
+      {strong.length > 0 && (
+        <>
+          <h2 className="text-xl font-bold mt-6 mb-2">
+             Top picks for you
+          </h2>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {strong.map((art: any) => (
-          <div key={art.id} className="relative">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {strong.map((art) => (
+              <div key={art.id} className="relative">
+                <p className="text-xs text-indigo-500 mb-1">
+                  Recommended match
+                </p>
 
-            <p className="text-xs text-indigo-500 mb-1">
-              Recommended match
-            </p>
-
-            <Card
-              id={art.id}
-              title={art.title}
-              description={art.description}
-              imageUrl={art.imageUrl}
-              liked={false}
-              onToggle={() => {}}
-              role="USER"
-            />
+                <Card
+                  id={art.id}
+                  title={art.title}
+                  description={art.description}
+                  imageUrl={art.imageUrl}
+                  liked={false}
+                  onToggle={() => {}}
+                  role="USER"
+                />
+              </div>
+            ))}
           </div>
-        ))}
-      </div>
+        </>
+      )}
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {weak.map((art: any) => (
-          <Card
-            key={art.id}
-            id={art.id}
-            title={art.title}
-            description={art.description}
-            imageUrl={art.imageUrl}
-            liked={false}
-            onToggle={() => {}}
-            role="USER"
-          />
-        ))}
-      </div>
+      
+      {weak.length > 0 && (
+        <>
+          <h2 className="text-xl font-bold mt-6 mb-2">
+             Još prijedloga
+          </h2>
 
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {weak.map((art) => (
+              <Card
+                key={art.id}
+                id={art.id}
+                title={art.title}
+                description={art.description}
+                imageUrl={art.imageUrl}
+                liked={false}
+                onToggle={() => {}}
+                role="USER"
+              />
+            ))}
+          </div>
+        </>
+      )}
     </div>
-  )
+  );
 }

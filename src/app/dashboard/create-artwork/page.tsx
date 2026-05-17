@@ -63,7 +63,7 @@ export default function CreateArtworkPage() {
         title,
         description,
         imageUrl,
-        userId: jwtDecode<any>(token!).userId,
+        
 
         artist,
   year: year ? Number(year) : null,
@@ -85,7 +85,7 @@ export default function CreateArtworkPage() {
   return (
     <div className="max-w-xl mx-auto p-6">
       <h1 className="text-2xl font-bold mb-4">
-        ➕ Add Artwork (Curator)
+         Add Artwork (Curator)
       </h1>
 
       <form onSubmit={handleSubmit} className="space-y-4">
@@ -111,8 +111,6 @@ export default function CreateArtworkPage() {
     value={imageUrl}
     onChange={(e) => setImageUrl(e.target.value)}
   />
-
-  {}
 
   <Input
     placeholder="Artist"

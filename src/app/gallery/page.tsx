@@ -46,6 +46,7 @@ export default function GalleryPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const [loadingMore, setLoadingMore] = useState(false);
+  const [allLoaded, setAllLoaded] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -105,11 +106,49 @@ export default function GalleryPage() {
   }
 };
 
+const fetchAllArtworks = async () => {
+  try {
+    const res = await fetch("/api/artworks?page=1");
+
+    let allData: Artwork[] = [];
+    let currentPage = 1;
+    let hasNext = true;
+
+    while (hasNext) {
+      const response = await fetch(
+        `/api/artworks?page=${currentPage}`
+      );
+
+      const data = await response.json();
+
+      allData = [...allData, ...data];
+
+      if (data.length < 15) {
+        hasNext = false;
+      } else {
+        currentPage++;
+      }
+    }
+
+    setArtworks(allData);
+    setAllLoaded(true);
+
+  } catch (err) {
+    console.log(err);
+  }
+};
+
   useEffect(() => {
     if (!authorized) return;
 
     fetchArtworks(page);
   }, [authorized, page, role]);
+
+  useEffect(() => {
+  if (search && !allLoaded) {
+    fetchAllArtworks();
+  }
+  }, [search]);
 
   const deleteArtwork = async (artworkId: string) => {
     const token = localStorage.getItem("token");
@@ -203,7 +242,7 @@ export default function GalleryPage() {
         Gallery
       </h1>
 
-      {/* ROLE INDICATOR */}
+      
       <p className="text-sm text-gray-500 mb-4">
         Logged in as:{" "}
         <span className="font-semibold text-indigo-600">
@@ -211,7 +250,7 @@ export default function GalleryPage() {
         </span>
       </p>
 
-      {/* CURATOR ACTION */}
+      
       {role === "CURATOR" && (
         <button
           onClick={() => router.push("/dashboard")}
@@ -221,7 +260,7 @@ export default function GalleryPage() {
         </button>
       )}
 
-      {/* SEARCH */}
+      
       <input
         type="text"
         placeholder="Search artworks..."
@@ -230,7 +269,7 @@ export default function GalleryPage() {
         className="mb-4 w-full max-w-md border px-3 py-2 rounded"
       />
 
-      {/* GRID */}
+      
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {filteredArtworks.map((art) => (
           <div key={art.id} className="relative">
@@ -244,7 +283,7 @@ export default function GalleryPage() {
               role={role}
             />
 
-            {/* ADMIN DELETE */}
+            
             {role === "ADMIN" && (
               <button
                 onClick={() => {
@@ -253,14 +292,26 @@ export default function GalleryPage() {
                 }}
                 className="absolute top-2 right-2 bg-red-500 text-white px-2 py-1 rounded text-xs"
               >
-                🗑 Delete
+                 Delete
               </button>
             )}
-          </div>
-        ))}
+
+            
+            {role === "CURATOR" && (
+              <button
+                onClick={() =>
+                router.push(`/dashboard/edit-artwork/${art.id}`)
+              }
+              className="absolute top-2 left-2 bg-indigo-600 text-white px-2 py-1 rounded text-xs"
+              >
+                 Edit
+              </button>
+            )}
+      </div>
+      ))}
       </div>
 
-      {/* EMPTY SEARCH */}
+      
 {filteredArtworks.length === 0 && search && (
   <div className="mt-8 text-center text-gray-400">
     <p className="text-lg font-medium">
@@ -273,7 +324,7 @@ export default function GalleryPage() {
   </div>
 )}
 
-      {/* LOAD MORE */}
+      
       {hasMore && (
   <div className="flex justify-center mt-6">
     <button

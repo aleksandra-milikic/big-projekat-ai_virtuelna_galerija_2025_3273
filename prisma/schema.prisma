@@ -46,6 +46,9 @@ model Artwork {
 
   favorites   Favorite[]
 
+  exhibitionId String?
+  exhibition   Exhibition? @relation(fields: [exhibitionId], references: [id])
+
   createdAt   DateTime @default(now())
 }
 
@@ -63,6 +66,8 @@ model Exhibition {
   id        String   @id @default(cuid())
   title     String
   isActive  Boolean  @default(true)
+
+  artworks  Artwork[]
 
   createdAt DateTime @default(now())
 }

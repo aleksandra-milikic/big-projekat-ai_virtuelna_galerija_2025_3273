@@ -49,7 +49,7 @@ export default function Card({
 
   return (
     <>
-      {/* CARD */}
+      
       <div className="border rounded-lg p-4 shadow transition-all duration-200 hover:shadow-lg hover:-translate-y-1 relative">
         {imageUrl && (
           <div
@@ -76,15 +76,15 @@ export default function Card({
           </p>
         )}
 
-        {/* METADATA */}
+        
 <div className="text-xs text-gray-500 mt-2 space-y-1">
-  {category && <p>🎭 Style: {category}</p>}
-  {artist && <p>🧑‍🎨 Artist: {artist}</p>}
-  {year && <p>📅 Year: {year}</p>}
+  {category && <p> Style: {category}</p>}
+  {artist && <p> Artist: {artist}</p>}
+  {year && <p> Year: {year}</p>}
 </div>
         
 
-        {/* ❤️ SAMO ZA USERA */}
+        
         {role === "USER" && (
           <button
             onClick={() => onToggle(id)}
@@ -98,7 +98,7 @@ export default function Card({
         )}
       </div>
 
-      {/* MODAL */}
+      
       {open && imageUrl && (
         <div
           className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 transition-opacity duration-200"

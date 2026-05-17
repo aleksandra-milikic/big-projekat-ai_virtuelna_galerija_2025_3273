@@ -58,7 +58,7 @@ export default function RootLayout({
     <html lang="en">
       <body className="min-h-screen flex flex-col relative">
 
-        {/* NAVBAR */}
+        
         <header className="w-full border-b px-6 py-4 flex justify-between items-center">
 
           <Link href="/" className="font-bold text-indigo-600 text-xl">
@@ -98,12 +98,12 @@ export default function RootLayout({
           </nav>
         </header>
 
-        {/* CONTENT */}
+        
         <main className="flex-1 px-6 py-10">
           {children}
         </main>
 
-        {/* FOOTER */}
+        
         <footer className="border-t px-6 py-4 text-center text-sm text-gray-500">
           © {new Date().getFullYear()} IVG
         </footer>

@@ -17,7 +17,7 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-gray-50">
-      {/* HERO SECTION */}
+      
       <section className="flex flex-col items-center justify-center text-center px-6 py-24">
         <h1 className="text-5xl md:text-6xl font-bold text-indigo-600 leading-tight">
           Inteligentna Virtuelna Galerija
@@ -28,7 +28,7 @@ export default function Home() {
           djelima kroz interaktivni digitalni prostor.
         </p>
 
-        {/* CTA */}
+        
         <div className="mt-8">
           <button
             onClick={() =>
@@ -41,9 +41,9 @@ export default function Home() {
         </div>
       </section>
 
-      {/* FEATURES */}
+      
       <section className="max-w-6xl mx-auto px-6 pb-20">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
           <div className="bg-white rounded-2xl shadow p-6 transition-all duration-200 hover:shadow-lg hover:-translate-y-1">
             <h2 className="text-xl font-semibold text-indigo-600">
               Digitalna galerija
@@ -55,11 +55,20 @@ export default function Home() {
 
           <div className="bg-white rounded-2xl shadow p-6 transition-all duration-200 hover:shadow-lg hover:-translate-y-1">
             <h2 className="text-xl font-semibold text-indigo-600">
-              Napredna pretraga
+              Pretraga umjetničkih djela
             </h2>
             <p className="mt-3 text-gray-600">
-              Brzo pronalaženje umjetničkih djela pomoću inteligentne pretrage.
+              Brzo pronalaženje radova po nazivu, opisu i osnovnim informacijama.
             </p>
+          </div>
+
+          <div className="bg-white rounded-2xl shadow p-6 transition-all duration-200 hover:shadow-lg hover:-translate-y-1">
+             <h2 className="text-xl font-semibold text-indigo-600">
+               Personalizovane preporuke
+             </h2>
+             <p className="mt-3 text-gray-600">
+               Sistem preporučuje slična umjetnička djela na osnovu stilova, tema, atmosfere i karakteristika radova koje korisnik označi kao omiljene.
+             </p>
           </div>
 
           <div className="bg-white rounded-2xl shadow p-6 transition-all duration-200 hover:shadow-lg hover:-translate-y-1">

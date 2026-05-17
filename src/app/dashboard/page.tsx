@@ -62,12 +62,7 @@ export default function DashboardPage() {
 
 </div>
 
-      {/* USER */}
-      {role === "USER" && (
-        <Link href="/profile">Profile</Link>
-      )}
-
-      {/* CURATOR */}
+      
       {role === "CURATOR" && (
         <div className="p-6 border rounded-xl bg-blue-50">
           <h2 className="font-bold text-lg">CURATOR PANEL</h2>
@@ -80,7 +75,7 @@ export default function DashboardPage() {
             href="/dashboard/create-artwork"
             className="inline-block px-4 py-2 bg-indigo-600 text-white rounded"
           >
-            ➕ Add Artwork
+             Add Artwork
           </Link>
         </div>
       )}

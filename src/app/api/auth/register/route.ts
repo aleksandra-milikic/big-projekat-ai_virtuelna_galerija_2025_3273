@@ -32,7 +32,12 @@ export async function POST(req: Request) {
     return NextResponse.json(
       {
         message: "User created",
-        user,
+        user: {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          role: user.role,
+        },
       },
       { status: 201 }
     );
