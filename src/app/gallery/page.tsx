@@ -13,6 +13,10 @@ type Artwork = {
   title: string;
   description?: string;
   imageUrl: string;
+
+  category?: string;   
+  artist?: string;     
+  year?: number;       
 };
 
 type DecodedToken = {
@@ -56,8 +60,11 @@ export default function GalleryPage() {
 
       setRole(decoded.role);
       setAuthorized(true);
+
+       fetchFavorites();
     } catch {
       router.push("/login");
+      
     }
   }, []);
 
@@ -149,6 +156,21 @@ export default function GalleryPage() {
         : [...prev, artworkId]
     );
   };
+
+  const fetchFavorites = async () => {
+  const token = localStorage.getItem("token")
+
+  const res = await fetch("/api/favorites", {
+    headers: {
+      Authorization: `Bearer ${token}`
+    }
+  })
+
+  const data = await res.json()
+
+  const ids = data.map((f: any) => f.artworkId)
+  setLikedIds(ids)
+}
 
   if (!authorized) return null;
 

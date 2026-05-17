@@ -10,6 +10,11 @@ type CardProps = {
   imageUrl?: string;
   liked: boolean;
   role: "USER" | "ADMIN" | "CURATOR";
+
+  category?: string;
+  artist?: string;
+  year?: number;
+
   onToggle: (id: string) => void;
 };
 
@@ -20,6 +25,9 @@ export default function Card({
   imageUrl,
   liked,
   role,
+  category,
+  artist,
+  year,
   onToggle,
 }: CardProps) {
   const [open, setOpen] = useState(false);
@@ -67,6 +75,14 @@ export default function Card({
             {description}
           </p>
         )}
+
+        {/* METADATA */}
+<div className="text-xs text-gray-500 mt-2 space-y-1">
+  {category && <p>🎭 Style: {category}</p>}
+  {artist && <p>🧑‍🎨 Artist: {artist}</p>}
+  {year && <p>📅 Year: {year}</p>}
+</div>
+        
 
         {/* ❤️ SAMO ZA USERA */}
         {role === "USER" && (

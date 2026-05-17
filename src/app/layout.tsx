@@ -74,7 +74,10 @@ export default function RootLayout({
                 <Link href="/gallery">Gallery</Link>
 
                 {role === "USER" && (
-                     <Link href="/favorites">Favorites</Link>
+                     <>
+                       <Link href="/favorites">Favorites</Link>
+                       <Link href="/recommendations">Recommendations</Link>
+                     </>
                 )}
 
                 <button

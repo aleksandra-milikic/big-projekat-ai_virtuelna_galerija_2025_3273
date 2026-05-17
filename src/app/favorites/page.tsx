@@ -34,26 +34,18 @@ export default function FavoritesPage() {
       const token = localStorage.getItem("token");
 
       const favRes = await fetch("/api/favorites", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+  headers: {
+    Authorization: `Bearer ${token}`,
+  },
+});
 
-      const favData = await favRes.json();
+const favData = await favRes.json();
 
-      const artRes = await fetch("/api/artworks");
+const favoriteArtworks = favData.map(
+  (f: any) => f.artwork
+);
 
-      const artData = await artRes.json();
-
-      const favoriteIds = favData.map(
-        (f: any) => f.artworkId
-      );
-
-      const filtered = artData.filter((art: Artwork) =>
-        favoriteIds.includes(art.id)
-      );
-
-      setFavorites(filtered);
+setFavorites(favoriteArtworks);
     } catch (err) {
       console.log(err);
     } finally {

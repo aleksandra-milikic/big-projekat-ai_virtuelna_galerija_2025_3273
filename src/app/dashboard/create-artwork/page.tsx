@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { jwtDecode } from "jwt-decode";
+import Input from "@/components/Input";
 
 type DecodedToken = {
   userId: string;
@@ -18,6 +19,11 @@ export default function CreateArtworkPage() {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [imageUrl, setImageUrl] = useState("");
+
+  const [artist, setArtist] = useState("");
+  const [year, setYear] = useState("");
+  const [category, setCategory] = useState("");
+  const [tags, setTags] = useState<string>("");
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -58,6 +64,14 @@ export default function CreateArtworkPage() {
         description,
         imageUrl,
         userId: jwtDecode<any>(token!).userId,
+
+        artist,
+  year: year ? Number(year) : null,
+  category,
+
+  tags: tags
+    ? tags.split(",").map((t) => t.trim())
+    : [],
       }),
     });
 
@@ -75,36 +89,56 @@ export default function CreateArtworkPage() {
       </h1>
 
       <form onSubmit={handleSubmit} className="space-y-4">
-        <input
-          type="text"
-          placeholder="Title"
-          className="w-full border p-2 rounded"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-        />
+  <input
+    type="text"
+    placeholder="Title"
+    className="w-full border p-2 rounded"
+    value={title}
+    onChange={(e) => setTitle(e.target.value)}
+  />
 
-        <textarea
-          placeholder="Description"
-          className="w-full border p-2 rounded"
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-        />
+  <textarea
+    placeholder="Description"
+    className="w-full border p-2 rounded"
+    value={description}
+    onChange={(e) => setDescription(e.target.value)}
+  />
 
-        <input
-          type="text"
-          placeholder="Image URL"
-          className="w-full border p-2 rounded"
-          value={imageUrl}
-          onChange={(e) => setImageUrl(e.target.value)}
-        />
+  <input
+    type="text"
+    placeholder="Image URL"
+    className="w-full border p-2 rounded"
+    value={imageUrl}
+    onChange={(e) => setImageUrl(e.target.value)}
+  />
 
-        <button
-          type="submit"
-          className="bg-indigo-600 text-white px-4 py-2 rounded"
-        >
-          Create Artwork
-        </button>
-      </form>
+  {}
+
+  <Input
+    placeholder="Artist"
+    value={artist}
+    onChange={(e) => setArtist(e.target.value)}
+  />
+
+  <Input
+    placeholder="Year"
+    value={year}
+    onChange={(e) => setYear(e.target.value)}
+  />
+
+  <Input
+    placeholder="Category / Style"
+    value={category}
+    onChange={(e) => setCategory(e.target.value)}
+  />
+
+  <button
+    type="submit"
+    className="bg-indigo-600 text-white px-4 py-2 rounded"
+  >
+    Create Artwork
+  </button>
+</form>
     </div>
   );
 }

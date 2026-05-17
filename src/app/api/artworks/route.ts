@@ -20,9 +20,14 @@ export async function GET(req: Request) {
         user: true,
         gallery: true,
       },
-      orderBy: {
-        createdAt: "desc",
-      },
+      orderBy: [
+  {
+    createdAt: "desc",
+  },
+  {
+    id: "desc",
+  },
+]
     });
 
     return NextResponse.json(artworks);
@@ -48,15 +53,31 @@ export async function POST(req: Request) {
 
     const body = await req.json();
 
-    const artwork = await prisma.artwork.create({
-      data: {
-        title: body.title,
-        description: body.description,
-        imageUrl: body.imageUrl,
-        userId: user.userId,
-        galleryId: body.galleryId,
-      },
-    });
+const {
+  title,
+  description,
+  imageUrl,
+  artist,
+  year,
+  category,
+  galleryId,
+  tags,
+} = body;
+
+const artwork = await prisma.artwork.create({
+  data: {
+    title,
+    description,
+    imageUrl,
+    artist,
+    year,
+    category,
+    tags: tags || [],
+
+    userId: user.userId,
+    galleryId,
+  },
+});
 
     return NextResponse.json(artwork, { status: 201 });
 

@@ -32,6 +32,12 @@ model Artwork {
   description String?
   imageUrl    String
 
+  artist      String?
+  year        Int?
+  category    String?
+  
+  tags        String[]
+
   userId      String
   user        User     @relation(fields: [userId], references: [id])
 

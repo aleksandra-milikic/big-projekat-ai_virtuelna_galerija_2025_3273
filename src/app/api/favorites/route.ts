@@ -14,11 +14,11 @@ export async function GET(req: Request) {
     const decoded: any = jwt.verify(token, process.env.JWT_SECRET!);
 
     const favorites = await prisma.favorite.findMany({
-      where: { userId: decoded.userId },
-      select: {
-        artworkId: true,
-      },
-    });
+  where: { userId: decoded.userId },
+  include: {
+    artwork: true
+  }
+});
 
     return NextResponse.json(favorites);
   } catch (err) {
