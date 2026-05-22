@@ -1,18 +1,18 @@
 @import "tailwindcss";
 
-/* LIGHT THEME (default) */
+
 :root {
   --background: #ffffff;
   --foreground: #171717;
 }
 
-/* DARK THEME (toggle via .dark class) */
+
 .dark {
   --background: #0a0a0a;
   --foreground: #ededed;
 }
 
-/* OPTIONAL: theme mapping for Tailwind usage */
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -20,7 +20,7 @@
   --font-mono: var(--font-geist-mono);
 }
 
-/* BODY GLOBAL STYLE */
+
 body {
   background: var(--background);
   color: var(--foreground);

@@ -42,7 +42,7 @@ export default function DashboardPage() {
         </span>
       </p>
 
-      {/* COMMON SECTION */}
+      
       <div className="grid md:grid-cols-2 gap-4 mb-8">
         <Link
           href="/gallery"

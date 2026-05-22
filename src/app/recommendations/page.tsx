@@ -96,7 +96,7 @@ export default function RecommendationsPage() {
       {strong.length > 0 && (
         <>
           <h2 className="text-xl font-bold mt-6 mb-2">
-             Top picks for you
+             Preporučeno za vas
           </h2>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
