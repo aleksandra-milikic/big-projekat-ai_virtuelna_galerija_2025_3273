@@ -1,48 +1,7 @@
 import { NextResponse } from "next/server";
-import { getUserFromToken } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-
-export async function PUT(
-  req: Request,
-  context: { params: Promise<{ id: string }> }
-) {
-  const { id } = await context.params;
-
-  const user = getUserFromToken(req);
-
-  if (!user) {
-    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
-  }
-
-  if (user.role !== "CURATOR" && user.role !== "ADMIN") {
-    return NextResponse.json({ message: "Forbidden" }, { status: 403 });
-  }
-
-  const body = await req.json();
-
-  if (!body.title || !body.imageUrl) {
-      return NextResponse.json(
-        { message: "Title and imageUrl are required" },
-        { status: 400 }
-      );
-    }
-
-  const updatedArtwork = await prisma.artwork.update({
-    where: { id },
-    data: {
-    title: body.title,
-    description: body.description,
-    imageUrl: body.imageUrl,
-    artist: body.artist,
-    year: body.year,
-    category: body.category,
-    tags: body.tags,
-    galleryId: body.galleryId || null,
-    },
-  });
-
-  return NextResponse.json(updatedArtwork);
-}
+import jwt from "jsonwebtoken";
+import { cookies } from "next/headers";
 
 export async function GET(
   req: Request,
@@ -64,15 +23,51 @@ export async function GET(
   return NextResponse.json(artwork);
 }
 
+export async function PUT(
+  req: Request,
+  context: { params: Promise<{ id: string }> }
+) {
+  const { id } = await context.params;
+
+  const cookieStore = await cookies();
+  const token = cookieStore.get("token")?.value;
+
+  if (!token) {
+    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+  }
+
+  const decoded = jwt.verify(token, process.env.JWT_SECRET!) as any;
+
+  if (decoded.role !== "CURATOR" && decoded.role !== "ADMIN") {
+    return NextResponse.json({ message: "Forbidden" }, { status: 403 });
+  }
+
+  const body = await req.json();
+
+  const updated = await prisma.artwork.update({
+    where: { id },
+    data: body,
+  });
+
+  return NextResponse.json(updated);
+}
+
 export async function DELETE(
   req: Request,
   context: { params: Promise<{ id: string }> }
 ) {
   const { id } = await context.params;
 
-  const user = getUserFromToken(req);
+  const cookieStore = await cookies();
+  const token = cookieStore.get("token")?.value;
 
-  if (!user || user.role !== "ADMIN") {
+  if (!token) {
+    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+  }
+
+  const decoded = jwt.verify(token, process.env.JWT_SECRET!) as any;
+
+  if (decoded.role !== "ADMIN") {
     return NextResponse.json({ message: "Forbidden" }, { status: 403 });
   }
 
@@ -80,7 +75,4 @@ export async function DELETE(
     where: { id },
   });
 
-  return NextResponse.json({
-    message: "Artwork deleted successfully",
-  });
-}
+  return NextResponse.json({ message: "Deleted" })};

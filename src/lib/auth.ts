@@ -1,27 +1,23 @@
-import jwt, { JwtPayload } from "jsonwebtoken";
+import { jwtVerify, SignJWT } from "jose";
 
-type UserPayload = JwtPayload & {
+export type UserPayload = {
   userId: string;
   role: "USER" | "CURATOR" | "ADMIN";
 };
 
-export function verifyToken(token: string): UserPayload | null {
-  try {
-    return jwt.verify(token, process.env.JWT_SECRET!) as UserPayload;
-  } catch {
-    return null;
-  }
+const secret = new TextEncoder().encode(process.env.JWT_SECRET!);
+
+export async function signToken(payload: UserPayload) {
+  return await new SignJWT(payload)
+    .setProtectedHeader({ alg: "HS256" })
+    .setExpirationTime("1d")
+    .sign(secret);
 }
 
-export function getUserFromToken(req: Request): UserPayload | null {
-  const authHeader = req.headers.get("authorization");
-
-  if (!authHeader) return null;
-
-  const token = authHeader.split(" ")[1];
-
+export async function verifyToken(token: string) {
   try {
-    return jwt.verify(token, process.env.JWT_SECRET!) as UserPayload;
+    const { payload } = await jwtVerify(token, secret);
+    return payload as unknown as UserPayload;
   } catch {
     return null;
   }

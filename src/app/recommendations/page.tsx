@@ -21,12 +21,8 @@ export default function RecommendationsPage() {
       try {
         setLoading(true);
 
-        const token = localStorage.getItem("token");
-
         const res = await fetch("/api/recommendations", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          credentials: "include",
         });
 
         if (!res.ok) {
@@ -38,7 +34,7 @@ export default function RecommendationsPage() {
         const data = await res.json();
 
         const filtered = (data || []).filter(
-          (item: Artwork) => item.score > 0
+          (item: Artwork) => item.score && item.score > 0
         );
 
         setItems(filtered);
@@ -92,11 +88,10 @@ export default function RecommendationsPage() {
         Na osnovu vaših omiljenih umjetničkih djela
       </p>
 
-      
       {strong.length > 0 && (
         <>
           <h2 className="text-xl font-bold mt-6 mb-2">
-             Preporučeno za vas
+            Preporučeno za vas
           </h2>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -121,11 +116,10 @@ export default function RecommendationsPage() {
         </>
       )}
 
-      
       {weak.length > 0 && (
         <>
           <h2 className="text-xl font-bold mt-6 mb-2">
-             Još prijedloga
+            Još prijedloga
           </h2>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

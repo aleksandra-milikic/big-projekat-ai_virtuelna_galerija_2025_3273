@@ -17,40 +17,37 @@ export default function EditArtworkPage() {
   const [category, setCategory] = useState("");
 
   useEffect(() => {
-  const fetchArtwork = async () => {
-    try {
-      const res = await fetch(`/api/artworks/${id}`);
+    const fetchArtwork = async () => {
+      try {
+        const res = await fetch(`/api/artworks/${id}`, {
+          credentials: "include",
+        });
 
-      if (!res.ok) {
-        throw new Error("Failed to fetch artwork");
+        if (!res.ok) throw new Error();
+
+        const data = await res.json();
+
+        setTitle(data.title || "");
+        setDescription(data.description || "");
+        setImageUrl(data.imageUrl || "");
+        setArtist(data.artist || "");
+        setYear(data.year ? String(data.year) : "");
+        setCategory(data.category || "");
+      } catch {
+        router.push("/gallery");
       }
+    };
 
-      const data = await res.json();
-
-      setTitle(data.title || "");
-      setDescription(data.description || "");
-      setImageUrl(data.imageUrl || "");
-      setArtist(data.artist || "");
-      setYear(data.year ? String(data.year) : "");
-      setCategory(data.category || "");
-    } catch (err) {
-      console.log(err);
-      router.push("/gallery");
-    }
-  };
-
-  fetchArtwork();
-}, [id]);
+    fetchArtwork();
+  }, [id]);
 
   const handleUpdate = async () => {
-    const token = localStorage.getItem("token");
-
     await fetch(`/api/artworks/${id}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
       },
+      credentials: "include",
       body: JSON.stringify({
         title,
         description,

@@ -15,37 +15,41 @@ export default function FavoritesPage() {
   const router = useRouter();
 
   const [authorized, setAuthorized] = useState(false);
-
   const [favorites, setFavorites] = useState<Artwork[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
+    const checkAuth = async () => {
+      try {
+        const res = await fetch("/api/auth/me", {
+          credentials: "include",
+        });
 
-    if (!token) {
-      router.push("/login");
-    } else {
-      setAuthorized(true);
-    }
+        if (!res.ok) {
+          router.push("/login");
+          return;
+        }
+
+        setAuthorized(true);
+      } catch {
+        router.push("/login");
+      }
+    };
+
+    checkAuth();
   }, []);
 
   const fetchFavorites = async () => {
     try {
-      const token = localStorage.getItem("token");
-
       const favRes = await fetch("/api/favorites", {
-  headers: {
-    Authorization: `Bearer ${token}`,
-  },
-});
+        credentials: "include",
+      });
 
-const favData = await favRes.json();
+      const favData = await favRes.json();
 
-const favoriteArtworks = favData.map(
-  (f: any) => f.artwork
-);
+      const favoriteArtworks = favData.map((f: any) => f.artwork);
 
-setFavorites(favoriteArtworks);
+      setFavorites(favoriteArtworks);
     } catch (err) {
       console.log(err);
     } finally {
@@ -59,9 +63,7 @@ setFavorites(favoriteArtworks);
     }
   }, [authorized]);
 
-  if (!authorized) {
-    return null;
-  }
+  if (!authorized) return null;
 
   if (loading) {
     return (

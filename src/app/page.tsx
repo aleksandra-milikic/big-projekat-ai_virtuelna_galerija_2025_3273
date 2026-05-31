@@ -8,16 +8,27 @@ export default function Home() {
   const [loggedIn, setLoggedIn] = useState(false);
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
+    const checkAuth = async () => {
+      try {
+        const res = await fetch("/api/auth/me", {
+          credentials: "include",
+        });
 
-    if (token) {
-      setLoggedIn(true);
-    }
+        if (res.ok) {
+          setLoggedIn(true);
+        } else {
+          setLoggedIn(false);
+        }
+      } catch {
+        setLoggedIn(false);
+      }
+    };
+
+    checkAuth();
   }, []);
 
   return (
     <main className="min-h-screen bg-gray-50">
-      
       <section className="flex flex-col items-center justify-center text-center px-6 py-24">
         <h1 className="text-5xl md:text-6xl font-bold text-indigo-600 leading-tight">
           Inteligentna Virtuelna Galerija
@@ -28,7 +39,6 @@ export default function Home() {
           djelima kroz interaktivni digitalni prostor.
         </p>
 
-        
         <div className="mt-8">
           <button
             onClick={() =>
@@ -41,10 +51,9 @@ export default function Home() {
         </div>
       </section>
 
-      
       <section className="max-w-6xl mx-auto px-6 pb-20">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
-          <div className="bg-white rounded-2xl shadow p-6 transition-all duration-200 hover:shadow-lg hover:-translate-y-1">
+          <div className="bg-white rounded-2xl shadow p-6 hover:shadow-lg hover:-translate-y-1 transition">
             <h2 className="text-xl font-semibold text-indigo-600">
               Digitalna galerija
             </h2>
@@ -53,7 +62,7 @@ export default function Home() {
             </p>
           </div>
 
-          <div className="bg-white rounded-2xl shadow p-6 transition-all duration-200 hover:shadow-lg hover:-translate-y-1">
+          <div className="bg-white rounded-2xl shadow p-6 hover:shadow-lg hover:-translate-y-1 transition">
             <h2 className="text-xl font-semibold text-indigo-600">
               Pretraga umjetničkih djela
             </h2>
@@ -62,22 +71,21 @@ export default function Home() {
             </p>
           </div>
 
-          <div className="bg-white rounded-2xl shadow p-6 transition-all duration-200 hover:shadow-lg hover:-translate-y-1">
-             <h2 className="text-xl font-semibold text-indigo-600">
-               Personalizovane preporuke
-             </h2>
-             <p className="mt-3 text-gray-600">
-               Sistem preporučuje slična umjetnička djela na osnovu stilova, tema, atmosfere i karakteristika radova koje korisnik označi kao omiljene.
-             </p>
+          <div className="bg-white rounded-2xl shadow p-6 hover:shadow-lg hover:-translate-y-1 transition">
+            <h2 className="text-xl font-semibold text-indigo-600">
+              Personalizovane preporuke
+            </h2>
+            <p className="mt-3 text-gray-600">
+              Sistem preporučuje slična umjetnička djela na osnovu stilova, tema, atmosfere i karakteristika radova koje korisnik označi kao omiljene.
+            </p>
           </div>
 
-          <div className="bg-white rounded-2xl shadow p-6 transition-all duration-200 hover:shadow-lg hover:-translate-y-1">
+          <div className="bg-white rounded-2xl shadow p-6 hover:shadow-lg hover:-translate-y-1 transition">
             <h2 className="text-xl font-semibold text-indigo-600">
               Upravljanje sadržajem
             </h2>
             <p className="mt-3 text-gray-600">
-              Administratorski i kustoski sistem za dodavanje i upravljanje
-              kolekcijama.
+              Administratorski i kustoski sistem za dodavanje i upravljanje kolekcijama.
             </p>
           </div>
         </div>

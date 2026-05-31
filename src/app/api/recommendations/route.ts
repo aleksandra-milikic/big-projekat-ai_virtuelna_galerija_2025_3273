@@ -1,59 +1,67 @@
-import { NextResponse } from "next/server"
-import jwt from "jsonwebtoken"
-import { prisma } from "@/lib/prisma"
+import { NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
+import jwt from "jsonwebtoken";
+import { cookies } from "next/headers";
 
-export async function GET(req: Request) {
+type FavoriteWithArtwork = {
+  artwork: {
+    id: string;
+    tags: string[];
+  };
+};
+
+type ArtworkWithScore = {
+  id: string;
+  tags: string[];
+  score: number;
+};
+
+export async function GET() {
   try {
-    const authHeader = req.headers.get("authorization")
+    const cookieStore = await cookies();
+    const token = cookieStore.get("token")?.value;
 
-    if (!authHeader) {
-      return NextResponse.json([], { status: 401 })
+    if (!token) {
+      return NextResponse.json([], { status: 401 });
     }
 
-    const token = authHeader.split(" ")[1]
-    const decoded: any = jwt.verify(token, process.env.JWT_SECRET!)
+    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as any;
 
-
-    const favorites = await prisma.favorite.findMany({
+    const favorites: FavoriteWithArtwork[] = await prisma.favorite.findMany({
       where: { userId: decoded.userId },
-      include: { artwork: true }
-    })
+      include: { artwork: true },
+    });
 
-    const likedArtworks = favorites.map(f => f.artwork)
-    console.log("LIKED:", likedArtworks)
+    const likedArtworks = favorites.map((f: FavoriteWithArtwork) => f.artwork);
 
-   const tagCount: Record<string, number> = {}
+    const tagCount: Record<string, number> = {};
 
-for (const art of likedArtworks) {
-  for (const tag of art.tags || []) {
-    tagCount[tag] = (tagCount[tag] || 0) + 1
-  }
-}
-console.log("TAG COUNT:", tagCount)
+    for (const art of likedArtworks) {
+      for (const tag of art.tags || []) {
+        tagCount[tag] = (tagCount[tag] || 0) + 1;
+      }
+    }
 
-    const all = await prisma.artwork.findMany()
+    const all = await prisma.artwork.findMany();
 
-    const scored = all.map(art => {
-  let score = 0
+    const scored: ArtworkWithScore[] = all.map((art: any) => {
+      let score = 0;
 
-  for (const tag of art.tags || []) {
-    score += tagCount[tag] || 0
-  }
+      for (const tag of art.tags || []) {
+        score += tagCount[tag] || 0;
+      }
 
-  return { ...art, score }
-})
+      return { ...art, score };
+    });
 
-    const likedIds = new Set(likedArtworks.map(a => a.id))
-
-    console.log("SCORED:", scored)
+    const likedIds = new Set(likedArtworks.map((a) => a.id));
 
     const filtered = scored
-      .filter(a => !likedIds.has(a.id))
-      .sort((a, b) => b.score - a.score)
+      .filter((a: ArtworkWithScore) => !likedIds.has(a.id))
+      .sort((a: ArtworkWithScore, b: ArtworkWithScore) => b.score - a.score);
 
-    return NextResponse.json(filtered.slice(0, 10))
-
-  } catch (err) {
-    return NextResponse.json([])
+    return NextResponse.json(filtered.slice(0, 10));
+  } catch {
+    return NextResponse.json([]);
   }
 }

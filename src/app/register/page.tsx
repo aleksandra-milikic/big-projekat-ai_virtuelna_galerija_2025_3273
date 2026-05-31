@@ -14,29 +14,30 @@ export default function RegisterPage() {
   const [error, setError] = useState("");
 
   const handleRegister = async () => {
-    setError("");
+  setError("");
 
-    try {
-      const res = await fetch("/api/auth/register", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ name, email, password }),
-      });
+  try {
+    const res = await fetch("/api/auth/register", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ name, email, password }),
+      credentials: "include", 
+    });
 
-      const data = await res.json();
+    const data = await res.json();
 
-      if (!res.ok) {
-        setError(data.message);
-        return;
-      }
-
-      router.push("/login");
-    } catch (err) {
-      setError("Server error");
+    if (!res.ok) {
+      setError(data.message);
+      return;
     }
-  };
+
+    router.push("/gallery"); 
+  } catch {
+    setError("Server error");
+  }
+};
 
   return (
     <div className="max-w-md mx-auto mt-10 space-y-4">

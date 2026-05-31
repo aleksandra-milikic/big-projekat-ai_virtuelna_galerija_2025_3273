@@ -18,25 +18,18 @@ export default function LoginPage() {
     try {
       const res = await fetch("/api/auth/login", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
+        credentials: "include", 
       });
 
-      const data = await res.json();
+      window.dispatchEvent(new Event("auth-change"));
 
-      if (!res.ok) {
-        setError(data.message);
-        return;
-      }
+setTimeout(() => {
+  router.push("/gallery");
+}, 50);
 
-  
-      localStorage.setItem("token", data.token);
-
-      
-      router.push("/");
-    } catch (err) {
+    } catch {
       setError("Server error");
     }
   };
@@ -45,18 +38,8 @@ export default function LoginPage() {
     <div className="max-w-md mx-auto mt-10 space-y-4">
       <h1 className="text-2xl font-bold">Login</h1>
 
-      <Input
-        placeholder="Email"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-      />
-
-      <Input
-        type="password"
-        placeholder="Password"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-      />
+      <Input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Email" />
+      <Input value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Password" type="password" />
 
       {error && <p className="text-red-500">{error}</p>}
 

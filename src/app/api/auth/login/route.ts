@@ -1,13 +1,11 @@
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken";
 import { prisma } from "@/lib/prisma";
+import { signToken } from "@/lib/auth";
 
 export async function POST(req: Request) {
   try {
-    const body = await req.json();
-
-    const { email, password } = body;
+    const { email, password } = await req.json();
 
     const user = await prisma.user.findUnique({
       where: { email },
@@ -32,20 +30,14 @@ export async function POST(req: Request) {
       );
     }
 
-    const token = jwt.sign(
-      {
-        userId: user.id,
-        role: user.role,
-      },
-      process.env.JWT_SECRET!,
-      {
-        expiresIn: "1d",
-      }
-    );
 
-    return NextResponse.json({
+    const token = await signToken({
+      userId: user.id,
+      role: user.role,
+    });
+
+    const response = NextResponse.json({
       message: "Login successful",
-      token,
       user: {
         id: user.id,
         name: user.name,
@@ -53,9 +45,18 @@ export async function POST(req: Request) {
         role: user.role,
       },
     });
-  } catch (error) {
-    console.log(error);
 
+    response.cookies.set("token", token, {
+      httpOnly: true,
+      sameSite: "lax",
+      secure: process.env.NODE_ENV === "production",
+      path: "/",
+      maxAge: 60 * 60 * 24,
+    });
+
+    return response;
+  } catch (err) {
+    console.error(err);
     return NextResponse.json(
       { message: "Server error" },
       { status: 500 }

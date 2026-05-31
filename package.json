@@ -1,5 +1,5 @@
 {
-  "name": "rnaep-projekat-ai_virtuelna_galerija_2025_3273",
+  "name": "cloud-projekat-ai_virtuelna_galerija_2025_3273-docker",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -12,6 +12,7 @@
     "@prisma/client": "^6.19.3",
     "bcryptjs": "^3.0.3",
     "dotenv": "^17.4.2",
+    "jose": "^6.2.3",
     "jsonwebtoken": "^9.0.3",
     "jwt-decode": "^4.0.0",
     "next": "16.2.6",
@@ -26,6 +27,7 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "autoprefixer": "^10.5.0",
     "eslint": "^9",
     "eslint-config-next": "16.2.6",
     "prisma": "^6.19.3",

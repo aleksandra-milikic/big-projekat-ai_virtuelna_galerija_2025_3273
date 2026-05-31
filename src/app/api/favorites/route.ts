@@ -1,44 +1,40 @@
 import { NextResponse } from "next/server";
-import jwt from "jsonwebtoken";
 import { prisma } from "@/lib/prisma";
+import jwt from "jsonwebtoken";
+import { cookies } from "next/headers";
 
-export async function GET(req: Request) {
+export async function GET() {
   try {
-    const authHeader = req.headers.get("authorization");
+    const cookieStore = await cookies();
+    const token = cookieStore.get("token")?.value;
 
-    if (!authHeader) {
-      return NextResponse.json({ message: "No token" }, { status: 401 });
+    if (!token) {
+      return NextResponse.json([], { status: 401 });
     }
 
-    const token = authHeader.split(" ")[1];
-    const decoded: any = jwt.verify(token, process.env.JWT_SECRET!);
+    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as any;
 
     const favorites = await prisma.favorite.findMany({
-  where: { userId: decoded.userId },
-  include: {
-    artwork: true
-  }
-});
+      where: { userId: decoded.userId },
+      include: { artwork: true },
+    });
 
     return NextResponse.json(favorites);
-  } catch (err) {
-    return NextResponse.json(
-      { message: "Error fetching favorites" },
-      { status: 500 }
-    );
+  } catch {
+    return NextResponse.json([]);
   }
 }
 
 export async function POST(req: Request) {
   try {
-    const authHeader = req.headers.get("authorization");
+    const cookieStore = await cookies();
+    const token = cookieStore.get("token")?.value;
 
-    if (!authHeader) {
-      return NextResponse.json({ message: "No token" }, { status: 401 });
+    if (!token) {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
-    const token = authHeader.split(" ")[1];
-    const decoded: any = jwt.verify(token, process.env.JWT_SECRET!);
+    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as any;
 
     const { artworkId } = await req.json();
 
@@ -65,7 +61,7 @@ export async function POST(req: Request) {
     });
 
     return NextResponse.json({ liked: true });
-  } catch (err) {
+  } catch {
     return NextResponse.json(
       { message: "Error toggling favorite" },
       { status: 500 }

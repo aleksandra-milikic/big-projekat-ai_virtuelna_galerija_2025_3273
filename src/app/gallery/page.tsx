@@ -6,17 +6,16 @@ import { jwtDecode } from "jwt-decode";
 import Card from "@/components/Card";
 import DeleteModal from "@/components/DeleteModal";
 import toast from "react-hot-toast";
-import { Role } from "@prisma/client";
+
 
 type Artwork = {
   id: string;
   title: string;
   description?: string;
   imageUrl: string;
-
-  category?: string;   
-  artist?: string;     
-  year?: number;       
+  category?: string;
+  artist?: string;
+  year?: number;
 };
 
 type DecodedToken = {
@@ -28,7 +27,7 @@ export default function GalleryPage() {
   const router = useRouter();
 
   const [authorized, setAuthorized] = useState(false);
-  const [role, setRole] = useState<Role>("USER");
+  const [role, setRole] = useState<DecodedToken['role']>("USER");
 
   const [artworks, setArtworks] = useState<Artwork[]>([]);
   const [loading, setLoading] = useState(true);
@@ -40,34 +39,37 @@ export default function GalleryPage() {
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
 
-  const [selectedArtworkId, setSelectedArtworkId] =
-    useState<string | null>(null);
-
+  const [selectedArtworkId, setSelectedArtworkId] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const [loadingMore, setLoadingMore] = useState(false);
   const [allLoaded, setAllLoaded] = useState(false);
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
-
-    if (!token) {
-      router.push("/login");
-      return;
-    }
-
+  const checkAuth = async () => {
     try {
-      const decoded = jwtDecode<DecodedToken>(token);
+      const res = await fetch("/api/auth/me", {
+        credentials: "include",
+      });
 
-      setRole(decoded.role);
+      if (!res.ok) {
+        router.push("/login");
+        return;
+      }
+
+      const data = await res.json();
+
+      setRole(data.user.role);
       setAuthorized(true);
 
-       fetchFavorites();
+      fetchFavorites();
     } catch {
       router.push("/login");
-      
     }
-  }, []);
+  };
+
+  checkAuth();
+}, []);
 
   const filteredArtworks = artworks.filter((art) => {
     const q = search.toLowerCase();
@@ -79,113 +81,93 @@ export default function GalleryPage() {
   });
 
   const fetchArtworks = async (pageNumber = 1) => {
-  try {
-    if (pageNumber === 1) setLoading(true);
-    else setLoadingMore(true);
+    try {
+      if (pageNumber === 1) setLoading(true);
+      else setLoadingMore(true);
 
-    const artRes = await fetch(`/api/artworks?page=${pageNumber}`);
-    const artData = await artRes.json();
+      const res = await fetch(`/api/artworks?page=${pageNumber}`);
+      const data = await res.json();
 
-    if (artData.length < 15) {
-      setHasMore(false);
+      if (data.length < 15) setHasMore(false);
+
+      setArtworks((prev) => {
+        const map = new Map<string, Artwork>();
+
+        prev.forEach((item) => map.set(item.id, item));
+        data.forEach((item: Artwork) => map.set(item.id, item));
+
+        return Array.from(map.values());
+      });
+    } catch (err) {
+      console.log(err);
+    } finally {
+      setLoading(false);
+      setLoadingMore(false);
     }
+  };
 
-    setArtworks((prev) => {
-  const map = new Map<string, Artwork>();
+  // FETCH ALL (SEARCH MODE)
+  const fetchAllArtworks = async () => {
+    try {
+      let allData: Artwork[] = [];
+      let currentPage = 1;
+      let hasNext = true;
 
-  prev.forEach((item) => map.set(item.id, item));
-  artData.forEach((item: Artwork) => map.set(item.id, item));
+      while (hasNext) {
+        const res = await fetch(`/api/artworks?page=${currentPage}`);
+        const data = await res.json();
 
-  return Array.from(map.values());
-});
-  } catch (err) {
-    console.log(err);
-  } finally {
-    setLoading(false);
-    setLoadingMore(false);
-  }
-};
+        allData = [...allData, ...data];
 
-const fetchAllArtworks = async () => {
-  try {
-    const res = await fetch("/api/artworks?page=1");
-
-    let allData: Artwork[] = [];
-    let currentPage = 1;
-    let hasNext = true;
-
-    while (hasNext) {
-      const response = await fetch(
-        `/api/artworks?page=${currentPage}`
-      );
-
-      const data = await response.json();
-
-      allData = [...allData, ...data];
-
-      if (data.length < 15) {
-        hasNext = false;
-      } else {
-        currentPage++;
+        if (data.length < 15) hasNext = false;
+        else currentPage++;
       }
+
+      setArtworks(allData);
+      setAllLoaded(true);
+    } catch (err) {
+      console.log(err);
     }
-
-    setArtworks(allData);
-    setAllLoaded(true);
-
-  } catch (err) {
-    console.log(err);
-  }
-};
+  };
 
   useEffect(() => {
     if (!authorized) return;
-
     fetchArtworks(page);
   }, [authorized, page, role]);
 
   useEffect(() => {
-  if (search && !allLoaded) {
-    fetchAllArtworks();
-  }
+    if (search && !allLoaded) {
+      fetchAllArtworks();
+    }
   }, [search]);
 
   const deleteArtwork = async (artworkId: string) => {
-    const token = localStorage.getItem("token");
+  try {
+    const res = await fetch(`/api/artworks/${artworkId}`, {
+      method: "DELETE",
+      credentials: "include",
+    });
 
-    try {
-      const res = await fetch(`/api/artworks/${artworkId}`, {
-        method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (res.ok) {
-        setArtworks((prev) =>
-          prev.filter((art) => art.id !== artworkId)
-        );
-
-        toast.success("Artwork deleted!");
-      } else {
-        toast.error("Delete failed!");
-      }
-    } catch {
-      toast.error("Something went wrong");
+    if (res.ok) {
+      setArtworks((prev) => prev.filter((a) => a.id !== artworkId));
+      toast.success("Artwork deleted!");
+    } else {
+      toast.error("Delete failed!");
     }
-  };
+  } catch {
+    toast.error("Something went wrong");
+  }
+};
 
   const toggleFavorite = async (artworkId: string) => {
-    const token = localStorage.getItem("token");
-
     const isLiked = likedIds.includes(artworkId);
 
     await fetch("/api/favorites", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
       },
+      credentials: "include",
       body: JSON.stringify({ artworkId }),
     });
 
@@ -197,52 +179,40 @@ const fetchAllArtworks = async () => {
   };
 
   const fetchFavorites = async () => {
-  const token = localStorage.getItem("token")
+    const res = await fetch("/api/favorites", {
+      credentials: "include",
+    });
 
-  const res = await fetch("/api/favorites", {
-    headers: {
-      Authorization: `Bearer ${token}`
-    }
-  })
+    const data = await res.json();
+    const ids = data.map((f: any) => f.artworkId);
 
-  const data = await res.json()
-
-  const ids = data.map((f: any) => f.artworkId)
-  setLikedIds(ids)
-}
+    setLikedIds(ids);
+  };
 
   if (!authorized) return null;
 
-  if (loading)
+  if (loading) {
     return (
       <div className="flex justify-center mt-10">
-        <div className="animate-pulse text-gray-500">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {[...Array(6)].map((_, i) => (
-              <div
-                key={i}
-                className="h-80 rounded-lg bg-gray-200 animate-pulse"
-              />
-            ))}
-          </div>
+        <div className="animate-pulse text-gray-500 grid grid-cols-1 md:grid-cols-3 gap-4">
+          {[...Array(6)].map((_, i) => (
+            <div key={i} className="h-80 rounded-lg bg-gray-200" />
+          ))}
         </div>
       </div>
     );
+  }
 
-  if (error)
+  if (error) {
     return (
-      <p className="text-center text-red-500 mt-10">
-        {error}
-      </p>
+      <p className="text-center text-red-500 mt-10">{error}</p>
     );
+  }
 
   return (
     <div className="p-4">
-      <h1 className="text-2xl font-bold mb-2">
-        Gallery
-      </h1>
+      <h1 className="text-2xl font-bold mb-2">Gallery</h1>
 
-      
       <p className="text-sm text-gray-500 mb-4">
         Logged in as:{" "}
         <span className="font-semibold text-indigo-600">
@@ -250,7 +220,6 @@ const fetchAllArtworks = async () => {
         </span>
       </p>
 
-      
       {role === "CURATOR" && (
         <button
           onClick={() => router.push("/dashboard")}
@@ -260,7 +229,6 @@ const fetchAllArtworks = async () => {
         </button>
       )}
 
-      
       <input
         type="text"
         placeholder="Search artworks..."
@@ -269,7 +237,6 @@ const fetchAllArtworks = async () => {
         className="mb-4 w-full max-w-md border px-3 py-2 rounded"
       />
 
-      
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {filteredArtworks.map((art) => (
           <div key={art.id} className="relative">
@@ -283,7 +250,6 @@ const fetchAllArtworks = async () => {
               role={role}
             />
 
-            
             {role === "ADMIN" && (
               <button
                 onClick={() => {
@@ -292,52 +258,44 @@ const fetchAllArtworks = async () => {
                 }}
                 className="absolute top-2 right-2 bg-red-500 text-white px-2 py-1 rounded text-xs"
               >
-                 Delete
+                Delete
               </button>
             )}
 
-            
             {role === "CURATOR" && (
               <button
                 onClick={() =>
-                router.push(`/dashboard/edit-artwork/${art.id}`)
-              }
-              className="absolute top-2 left-2 bg-indigo-600 text-white px-2 py-1 rounded text-xs"
+                  router.push(`/dashboard/edit-artwork/${art.id}`)
+                }
+                className="absolute top-2 left-2 bg-indigo-600 text-white px-2 py-1 rounded text-xs"
               >
-                 Edit
+                Edit
               </button>
             )}
+          </div>
+        ))}
       </div>
-      ))}
-      </div>
 
-      
-{filteredArtworks.length === 0 && search && (
-  <div className="mt-8 text-center text-gray-400">
-    <p className="text-lg font-medium">
-      Nema rezultata
-    </p>
+      {filteredArtworks.length === 0 && search && (
+        <div className="mt-8 text-center text-gray-400">
+          <p className="text-lg font-medium">Nema rezultata</p>
+          <p className="text-sm mt-1">
+            Pokušajte sa drugačijim pojmom.
+          </p>
+        </div>
+      )}
 
-    <p className="text-sm mt-1">
-      Pokušajte sa drugačijim pojmom.
-    </p>
-  </div>
-)}
-
-      
       {hasMore && (
-  <div className="flex justify-center mt-6">
-    <button
-      onClick={() => setPage((prev) => prev + 1)}
-      disabled={loadingMore}
-      className="px-4 py-2 bg-black text-white rounded hover:bg-gray-800 transition"
-    >
-      {loadingMore ? "Loading..." : "Load More"}
-    </button>
-  </div>
-)}
-
-      <div id="scroll-end" className="h-10" />
+        <div className="flex justify-center mt-6">
+          <button
+            onClick={() => setPage((p) => p + 1)}
+            disabled={loadingMore}
+            className="px-4 py-2 bg-black text-white rounded"
+          >
+            {loadingMore ? "Loading..." : "Load More"}
+          </button>
+        </div>
+      )}
 
       <DeleteModal
         isOpen={isModalOpen}

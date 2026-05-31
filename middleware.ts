@@ -1,27 +1,34 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { verifyToken } from "./src/lib/auth";
+import { jwtVerify } from "jose";
 
-export function middleware(req: NextRequest) {
-  const authHeader = req.headers.get("authorization");
+const secret = new TextEncoder().encode(process.env.JWT_SECRET!);
 
-  if (!authHeader) {
-    return NextResponse.json(
-      { message: "No token provided" },
-      { status: 401 }
-    );
+export async function middleware(req: NextRequest) {
+  const { pathname } = req.nextUrl;
+
+  const publicRoutes = ["/login", "/register", "/", "/favicon.ico"];
+
+  const isPublic =
+    publicRoutes.includes(pathname) ||
+    pathname.startsWith("/_next") ||
+    pathname.startsWith("/api/auth") ||
+  pathname.startsWith("/api/debug");
+
+  if (isPublic) {
+    return NextResponse.next();
   }
 
-  const token = authHeader.split(" ")[1];
+  const token = req.cookies.get("token")?.value;
 
-  const decoded = verifyToken(token);
-
-  if (!decoded) {
-    return NextResponse.json(
-      { message: "Invalid token" },
-      { status: 401 }
-    );
+  if (!token) {
+    return NextResponse.redirect(new URL("/login", req.url));
   }
 
-  return NextResponse.next();
+  try {
+    await jwtVerify(token, secret);
+    return NextResponse.next();
+  } catch {
+    return NextResponse.redirect(new URL("/login", req.url));
+  }
 }
