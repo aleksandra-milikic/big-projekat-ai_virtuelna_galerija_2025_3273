@@ -31,7 +31,7 @@ export default function Home() {
     <main className="min-h-screen bg-gray-50">
       <section className="flex flex-col items-center justify-center text-center px-6 py-24">
         <h1 className="text-5xl md:text-6xl font-bold text-indigo-600 leading-tight">
-          Inteligentna Virtuelna Galerija
+          Inteligentna Virtuelna Galerija 
         </h1>
 
         <p className="mt-6 max-w-2xl text-gray-600 text-lg">
