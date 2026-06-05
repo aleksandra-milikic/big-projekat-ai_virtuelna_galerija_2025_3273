@@ -19,39 +19,39 @@ export default function Navbar() {
   const [authKey, setAuthKey] = useState(0);
 
   useEffect(() => {
-  const checkAuth = async () => {
-    try {
-      const res = await fetch("/api/auth/me", {
-        credentials: "include",
-      });
+    const checkAuth = async () => {
+      try {
+        const res = await fetch("/api/auth/me", {
+          credentials: "include",
+        });
 
-      if (!res.ok) {
+        if (!res.ok) {
+          setLoggedIn(false);
+          setRole("");
+          return;
+        }
+
+        const data = await res.json();
+        const user: User = data.user;
+
+        setLoggedIn(true);
+        setRole(user.role);
+      } catch {
         setLoggedIn(false);
         setRole("");
-        return;
       }
+    };
 
-      const data = await res.json();
-      const user: User = data.user;
+    checkAuth();
 
-      setLoggedIn(true);
-      setRole(user.role);
-    } catch {
-      setLoggedIn(false);
-      setRole("");
-    }
-  };
+    const handler = () => checkAuth();
 
-  checkAuth();
+    window.addEventListener("auth-change", handler);
 
-  const handler = () => checkAuth();
-
-  window.addEventListener("auth-change", handler);
-
-  return () => {
-    window.removeEventListener("auth-change", handler);
-  };
-}, []);
+    return () => {
+      window.removeEventListener("auth-change", handler);
+    };
+  }, []);
 
   const handleLogout = async () => {
     await fetch("/api/auth/logout", {
@@ -83,6 +83,18 @@ export default function Navbar() {
               <>
                 <Link href="/favorites">Favorites</Link>
                 <Link href="/recommendations">Recommendations</Link>
+              </>
+            )}
+
+            {role === "ADMIN" && (
+              <>
+                <Link href="/favorites">Favorites</Link>
+                <Link href="/recommendations">Recommendations</Link>
+
+
+                <Link href="/analytics" className="text-yellow-500 font-bold">
+                  Analytics
+                </Link>
               </>
             )}
 

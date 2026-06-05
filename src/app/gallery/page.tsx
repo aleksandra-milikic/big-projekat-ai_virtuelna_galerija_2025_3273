@@ -2,11 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { jwtDecode } from "jwt-decode";
 import Card from "@/components/Card";
 import DeleteModal from "@/components/DeleteModal";
 import toast from "react-hot-toast";
-
 
 type Artwork = {
   id: string;
@@ -27,58 +25,49 @@ export default function GalleryPage() {
   const router = useRouter();
 
   const [authorized, setAuthorized] = useState(false);
-  const [role, setRole] = useState<DecodedToken['role']>("USER");
+  const [role, setRole] = useState<DecodedToken["role"]>("USER");
 
   const [artworks, setArtworks] = useState<Artwork[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const [loadingMore, setLoadingMore] = useState(false);
 
-  const [likedIds, setLikedIds] = useState<string[]>([]);
   const [search, setSearch] = useState("");
 
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
 
+  const [likedIds, setLikedIds] = useState<string[]>([]);
+
   const [selectedArtworkId, setSelectedArtworkId] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const [loadingMore, setLoadingMore] = useState(false);
-  const [allLoaded, setAllLoaded] = useState(false);
 
   useEffect(() => {
-  const checkAuth = async () => {
-    try {
-      const res = await fetch("/api/auth/me", {
-        credentials: "include",
-      });
+    const checkAuth = async () => {
+      try {
+        const res = await fetch("/api/auth/me", {
+          credentials: "include",
+        });
 
-      if (!res.ok) {
+        if (!res.ok) {
+          router.push("/login");
+          return;
+        }
+
+        const data = await res.json();
+
+        setRole(data.user.role);
+        setAuthorized(true);
+
+        fetchFavorites();
+      } catch {
         router.push("/login");
-        return;
       }
+    };
 
-      const data = await res.json();
+    checkAuth();
+  }, []);
 
-      setRole(data.user.role);
-      setAuthorized(true);
-
-      fetchFavorites();
-    } catch {
-      router.push("/login");
-    }
-  };
-
-  checkAuth();
-}, []);
-
-  const filteredArtworks = artworks.filter((art) => {
-    const q = search.toLowerCase();
-
-    return (
-      art.title.toLowerCase().includes(q) ||
-      art.description?.toLowerCase().includes(q)
-    );
-  });
 
   const fetchArtworks = async (pageNumber = 1) => {
     try {
@@ -106,58 +95,47 @@ export default function GalleryPage() {
     }
   };
 
-  // FETCH ALL (SEARCH MODE)
-  const fetchAllArtworks = async () => {
+  useEffect(() => {
+    if (!authorized) return;
+    fetchArtworks(page);
+  }, [authorized, page]);
+
+
+  useEffect(() => {
+    if (search.trim().length < 2) return;
+
+    const timeout = setTimeout(() => {
+      fetch("/api/events", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          action: "SEARCH",
+          metadata: search.trim(),
+        }),
+      });
+    }, 600);
+
+    return () => clearTimeout(timeout);
+  }, [search]);
+
+
+  const trackView = async (artworkId: string) => {
     try {
-      let allData: Artwork[] = [];
-      let currentPage = 1;
-      let hasNext = true;
-
-      while (hasNext) {
-        const res = await fetch(`/api/artworks?page=${currentPage}`);
-        const data = await res.json();
-
-        allData = [...allData, ...data];
-
-        if (data.length < 15) hasNext = false;
-        else currentPage++;
-      }
-
-      setArtworks(allData);
-      setAllLoaded(true);
+      await fetch(`/api/artworks/${artworkId}`, {
+        method: "GET",
+        credentials: "include",
+      });
     } catch (err) {
       console.log(err);
     }
   };
 
-  useEffect(() => {
-    if (!authorized) return;
-    fetchArtworks(page);
-  }, [authorized, page, role]);
+  const openArtwork = async (id: string) => {
+    await trackView(id);
+    router.push(`/artwork/${id}`);
+  };
 
-  useEffect(() => {
-    if (search && !allLoaded) {
-      fetchAllArtworks();
-    }
-  }, [search]);
-
-  const deleteArtwork = async (artworkId: string) => {
-  try {
-    const res = await fetch(`/api/artworks/${artworkId}`, {
-      method: "DELETE",
-      credentials: "include",
-    });
-
-    if (res.ok) {
-      setArtworks((prev) => prev.filter((a) => a.id !== artworkId));
-      toast.success("Artwork deleted!");
-    } else {
-      toast.error("Delete failed!");
-    }
-  } catch {
-    toast.error("Something went wrong");
-  }
-};
 
   const toggleFavorite = async (artworkId: string) => {
     const isLiked = likedIds.includes(artworkId);
@@ -184,30 +162,55 @@ export default function GalleryPage() {
     });
 
     const data = await res.json();
-    const ids = data.map((f: any) => f.artworkId);
-
-    setLikedIds(ids);
+    setLikedIds(data.map((f: any) => f.artworkId));
   };
+
+
+  const deleteArtwork = async (artworkId: string) => {
+    try {
+      const res = await fetch(`/api/artworks/${artworkId}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+
+      if (res.ok) {
+        setArtworks((prev) =>
+          prev.filter((a) => a.id !== artworkId)
+        );
+        toast.success("Artwork deleted!");
+      } else {
+        toast.error("Delete failed!");
+      }
+    } catch {
+      toast.error("Something went wrong");
+    }
+  };
+
+
+  const filteredArtworks = artworks.filter((art) => {
+    const q = search.toLowerCase();
+
+    return (
+      art.title.toLowerCase().includes(q) ||
+      art.description?.toLowerCase().includes(q)
+    );
+  });
+
 
   if (!authorized) return null;
 
   if (loading) {
     return (
-      <div className="flex justify-center mt-10">
-        <div className="animate-pulse text-gray-500 grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="p-4 animate-pulse">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {[...Array(6)].map((_, i) => (
-            <div key={i} className="h-80 rounded-lg bg-gray-200" />
+            <div key={i} className="h-80 bg-gray-200 rounded" />
           ))}
         </div>
       </div>
     );
   }
 
-  if (error) {
-    return (
-      <p className="text-center text-red-500 mt-10">{error}</p>
-    );
-  }
 
   return (
     <div className="p-4">
@@ -240,15 +243,17 @@ export default function GalleryPage() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {filteredArtworks.map((art) => (
           <div key={art.id} className="relative">
-            <Card
-              id={art.id}
-              title={art.title}
-              description={art.description}
-              imageUrl={art.imageUrl}
-              liked={likedIds.includes(art.id)}
-              onToggle={toggleFavorite}
-              role={role}
-            />
+            <div onClick={() => openArtwork(art.id)}>
+              <Card
+                id={art.id}
+                title={art.title}
+                description={art.description}
+                imageUrl={art.imageUrl}
+                liked={likedIds.includes(art.id)}
+                role={role}
+                onToggle={toggleFavorite}
+              />
+            </div>
 
             {role === "ADMIN" && (
               <button
@@ -277,12 +282,9 @@ export default function GalleryPage() {
       </div>
 
       {filteredArtworks.length === 0 && search && (
-        <div className="mt-8 text-center text-gray-400">
-          <p className="text-lg font-medium">Nema rezultata</p>
-          <p className="text-sm mt-1">
-            Pokušajte sa drugačijim pojmom.
-          </p>
-        </div>
+        <p className="text-center mt-8 text-gray-400">
+          Nema rezultata
+        </p>
       )}
 
       {hasMore && (

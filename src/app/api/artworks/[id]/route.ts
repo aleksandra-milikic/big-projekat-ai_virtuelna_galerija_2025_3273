@@ -20,6 +20,26 @@ export async function GET(
     );
   }
 
+  
+  const cookieStore = await cookies();
+  const token = cookieStore.get("token")?.value;
+
+  if (token) {
+    try {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET!) as any;
+
+      await prisma.userEvent.create({
+        data: {
+          userId: decoded.userId,
+          artworkId: id,
+          action: "VIEW",
+        },
+      });
+    } catch {
+      
+    }
+  }
+
   return NextResponse.json(artwork);
 }
 

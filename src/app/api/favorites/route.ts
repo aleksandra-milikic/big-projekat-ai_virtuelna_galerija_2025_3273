@@ -46,21 +46,38 @@ export async function POST(req: Request) {
     });
 
     if (existing) {
-      await prisma.favorite.delete({
-        where: { id: existing.id },
-      });
+  await prisma.favorite.delete({
+    where: { id: existing.id },
+  });
 
-      return NextResponse.json({ liked: false });
-    }
+  await prisma.userEvent.create({
+    data: {
+      userId: decoded.userId,
+      artworkId,
+      action: "UNLIKE",
+    },
+  });
+
+  return NextResponse.json({ liked: false });
+}
 
     await prisma.favorite.create({
-      data: {
-        userId: decoded.userId,
-        artworkId,
-      },
-    });
+  data: {
+    userId: decoded.userId,
+    artworkId,
+  },
+});
 
-    return NextResponse.json({ liked: true });
+await prisma.userEvent.create({
+  data: {
+    userId: decoded.userId,
+    artworkId,
+    action: "LIKE",
+  },
+});
+
+return NextResponse.json({ liked: true });
+
   } catch {
     return NextResponse.json(
       { message: "Error toggling favorite" },

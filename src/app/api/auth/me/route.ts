@@ -31,7 +31,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json(null, { status: 401 });
     }
 
-    return NextResponse.json({ user });
+    return NextResponse.json({ user: payload });
   } catch {
     return NextResponse.json(null, { status: 401 });
   }

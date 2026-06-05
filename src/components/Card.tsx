@@ -49,7 +49,6 @@ export default function Card({
 
   return (
     <>
-      
       <div className="border rounded-lg p-4 shadow transition-all duration-200 hover:shadow-lg hover:-translate-y-1 relative">
         {imageUrl && (
           <div
@@ -57,14 +56,14 @@ export default function Card({
             className="relative w-full h-48 bg-gray-100 rounded overflow-hidden cursor-pointer transition-transform duration-200 hover:scale-[1.03]"
           >
             <Image
-             src={imageUrl}
-             alt={title}
-             width={400}
-             height={300}
-             unoptimized
-             loading="lazy"
-             className="object-contain w-full h-48"
-           />
+              src={imageUrl}
+              alt={title}
+              width={400}
+              height={300}
+              unoptimized
+              loading="lazy"
+              className="object-contain w-full h-48"
+            />
           </div>
         )}
 
@@ -76,29 +75,26 @@ export default function Card({
           </p>
         )}
 
-        
-<div className="text-xs text-gray-500 mt-2 space-y-1">
-  {category && <p> Style: {category}</p>}
-  {artist && <p> Artist: {artist}</p>}
-  {year && <p> Year: {year}</p>}
-</div>
-        
 
-        
+        <div className="text-xs text-gray-500 mt-2 space-y-1">
+          {category && <p> Style: {category}</p>}
+          {artist && <p> Artist: {artist}</p>}
+          {year && <p> Year: {year}</p>}
+        </div>
+
         {role === "USER" && (
           <button
             onClick={() => onToggle(id)}
             className={`absolute top-2 right-2 text-2xl 
              transition-transform duration-200 hover:scale-125 active:scale-90 ${
-             liked ? "text-red-500 scale-110" : "text-gray-400"
-            }`}
+               liked ? "text-red-500 scale-110" : "text-gray-400"
+             }`}
           >
             {liked ? "❤️" : "🤍"}
           </button>
         )}
       </div>
 
-      
       {open && imageUrl && (
         <div
           className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 transition-opacity duration-200"

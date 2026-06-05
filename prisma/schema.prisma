@@ -85,6 +85,15 @@ model Favorite {
   createdAt DateTime @default(now())
 }
 
+model UserEvent {
+  id        String   @id @default(cuid())
+  userId    String
+  artworkId String?
+  metadata  String?
+  action    String   // VIEW | LIKE | UNLIKE | SEARCH
+  createdAt DateTime @default(now())
+}
+
 enum Role {
   USER
   ADMIN
