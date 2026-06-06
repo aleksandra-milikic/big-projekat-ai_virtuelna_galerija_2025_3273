@@ -27,19 +27,13 @@ export default function RecommendationsPage() {
 
         if (!res.ok) {
           setError("Failed to load recommendations");
-          setItems([]);
           return;
         }
 
         const data = await res.json();
 
-        const filtered = (data || []).filter(
-          (item: Artwork) => item.score && item.score > 0
-        );
-
-        setItems(filtered);
-      } catch (err) {
-        console.log(err);
+        setItems(data || []);
+      } catch {
         setError("Something went wrong");
       } finally {
         setLoading(false);
@@ -51,92 +45,93 @@ export default function RecommendationsPage() {
 
   if (loading) {
     return (
-      <p className="text-center mt-10 text-gray-500">
+      <div className="text-center mt-10 text-gray-500">
         Loading recommendations...
-      </p>
+      </div>
     );
   }
 
   if (error) {
     return (
-      <p className="text-center mt-10 text-red-500">
+      <div className="text-center mt-10 text-red-500">
         {error}
-      </p>
+      </div>
     );
   }
 
   if (items.length === 0) {
     return (
       <div className="text-center mt-10 text-gray-500">
-        Nemate još dovoljno aktivnosti.
-        <br />
-        ❤️ Označite umjetnička djela u galeriji kao omiljena kako biste dobili preporuke.
+        Još uvijek nema dovoljno interakcija za generisanje preporuka.
       </div>
     );
   }
 
-  const strong = items.filter((i) => (i.score ?? 0) > 2);
-  const weak = items.filter((i) => (i.score ?? 0) <= 2);
+  const sorted = [...items].sort(
+  (a, b) => (b.score ?? 0) - (a.score ?? 0)
+);
+
+  const strong = sorted.slice(0, 4);
+  const weak = sorted.slice(4);
 
   return (
-    <div className="p-4">
-      <h1 className="text-2xl font-bold">
-        Preporučeno za vas
+    <div className="p-6 bg-gray-50 min-h-screen">
+      <h1 className="text-3xl font-bold mb-2">
+        Preporučena umjetnička djela
       </h1>
 
-      <p className="text-gray-500 mb-4">
-        Na osnovu vaših omiljenih umjetničkih djela
+      <p className="text-gray-500 mb-6">
+        Preporuke su prilagođene vašim prethodnim interakcijama
       </p>
 
+
       {strong.length > 0 && (
-        <>
-          <h2 className="text-xl font-bold mt-6 mb-2">
-            Preporučeno za vas
+        <div className="mb-10">
+          <h2 className="text-xl font-semibold mb-3">
+            🔥 Najrelevantnije preporuke
           </h2>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {strong.map((art) => (
-              <div key={art.id} className="relative">
-                <p className="text-xs text-indigo-500 mb-1">
-                  Recommended match
-                </p>
+              <div key={art.id} className="bg-white p-3 rounded-xl shadow">
+                <div className="text-xs text-green-600 mb-1">
+                  High confidence
+                </div>
 
-                <Card
-                  id={art.id}
-                  title={art.title}
-                  description={art.description}
-                  imageUrl={art.imageUrl}
-                  liked={false}
-                  onToggle={() => {}}
-                  role="USER"
-                />
+                <div className="text-xs text-gray-400 mb-2">
+                  Preporučeno na osnovu vaših interesovanja
+                </div>
+
+                <Card {...art} liked={false} onToggle={() => {}} role="USER" />
               </div>
             ))}
           </div>
-        </>
+        </div>
       )}
 
+
       {weak.length > 0 && (
-        <>
-          <h2 className="text-xl font-bold mt-6 mb-2">
-            Još prijedloga
+        <div>
+          <h2 className="text-xl font-semibold mb-3">
+            💡 Istražite nešto novo
           </h2>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {weak.map((art) => (
-              <Card
-                key={art.id}
-                id={art.id}
-                title={art.title}
-                description={art.description}
-                imageUrl={art.imageUrl}
-                liked={false}
-                onToggle={() => {}}
-                role="USER"
-              />
+              <div key={art.id} className="bg-white p-3 rounded-xl shadow-sm">
+                <div className="text-xs text-blue-500 mb-1">
+                  Low confidence / discovery
+                </div>
+
+                <div className="text-xs text-gray-400 mb-2">
+                  Predlog za istraživanje novih umjetničkih pravaca
+                </div>
+
+                <Card {...art} liked={false} onToggle={() => {}} role="USER" />
+              </div>
             ))}
           </div>
-        </>
+        </div>
       )}
     </div>
   );
