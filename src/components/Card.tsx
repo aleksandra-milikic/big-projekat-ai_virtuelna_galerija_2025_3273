@@ -53,17 +53,14 @@ export default function Card({
         {imageUrl && (
           <div
             onClick={() => setOpen(true)}
-            className="relative w-full h-48 bg-gray-100 rounded overflow-hidden cursor-pointer transition-transform duration-200 hover:scale-[1.03]"
+            className="relative w-full h-48 bg-gray-100 rounded overflow-hidden cursor-pointer"
           >
             <Image
-              src={imageUrl}
-              alt={title}
-              width={400}
-              height={300}
-              unoptimized
-              loading="lazy"
-              className="object-contain w-full h-48"
-            />
+  src={imageUrl}
+  alt={title}
+  fill
+  className="object-contain"
+/>
           </div>
         )}
 

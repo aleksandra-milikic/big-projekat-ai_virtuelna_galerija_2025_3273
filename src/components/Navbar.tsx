@@ -88,10 +88,6 @@ export default function Navbar() {
 
             {role === "ADMIN" && (
               <>
-                <Link href="/favorites">Favorites</Link>
-                <Link href="/recommendations">Recommendations</Link>
-
-
                 <Link href="/analytics" className="text-yellow-500 font-bold">
                   Analytics
                 </Link>

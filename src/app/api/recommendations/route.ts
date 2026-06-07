@@ -61,11 +61,15 @@ export async function GET() {
 
 
     for (const e of events) {
-      const artwork = await prisma.artwork.findUnique({
-        where: { id: e.artworkId || "" },
+      const artworkIds = [e.artworkId].filter(Boolean);
+
+      const artworks = await prisma.artwork.findMany({
+        where: { id: { in: artworkIds } }
       });
 
-      if (!artwork) continue;
+      if (!artworks || artworks.length === 0) continue;
+
+      const artwork = artworks[0];
 
       const apply = (weight: number) => {
         for (const tag of artwork.tags || []) {

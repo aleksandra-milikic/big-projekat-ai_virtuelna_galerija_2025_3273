@@ -32,6 +32,7 @@ model Artwork {
   title       String
   description String?
   imageUrl    String
+  thumbnailUrl String?
 
   artist      String?
   year        Int?

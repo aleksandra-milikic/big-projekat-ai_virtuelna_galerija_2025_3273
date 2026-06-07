@@ -5,8 +5,10 @@ import { useRouter } from "next/navigation";
 import Card from "@/components/Card";
 import DeleteModal from "@/components/DeleteModal";
 import toast from "react-hot-toast";
+import { useMemo } from "react";
 
 type Artwork = {
+  thumbnailUrl: string | undefined;
   id: string;
   title: string;
   description?: string;
@@ -40,6 +42,8 @@ export default function GalleryPage() {
 
   const [selectedArtworkId, setSelectedArtworkId] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  
 
 
   useEffect(() => {
@@ -79,14 +83,7 @@ export default function GalleryPage() {
 
       if (data.length < 15) setHasMore(false);
 
-      setArtworks((prev) => {
-        const map = new Map<string, Artwork>();
-
-        prev.forEach((item) => map.set(item.id, item));
-        data.forEach((item: Artwork) => map.set(item.id, item));
-
-        return Array.from(map.values());
-      });
+      setArtworks((prev) => [...prev, ...data]);
     } catch (err) {
       console.log(err);
     } finally {
@@ -187,15 +184,27 @@ export default function GalleryPage() {
   };
 
 
-  const filteredArtworks = artworks.filter((art) => {
-    const q = search.toLowerCase();
+  const [debouncedSearch, setDebouncedSearch] = useState("");
 
-    return (
-      art.title.toLowerCase().includes(q) ||
-      art.description?.toLowerCase().includes(q)
-    );
-  });
+useEffect(() => {
+  const t = setTimeout(() => {
+    setDebouncedSearch(search);
+  }, 300);
 
+  return () => clearTimeout(t);
+}, [search]);
+
+const filteredArtworks = useMemo(() => {
+  const query = debouncedSearch.trim().toLowerCase();
+  if (!query) return artworks;
+
+  return artworks.filter((art) =>
+    art.title.toLowerCase().includes(query) ||
+    art.description?.toLowerCase().includes(query) ||
+    art.category?.toLowerCase().includes(query) ||
+    art.artist?.toLowerCase().includes(query)
+  );
+}, [artworks, debouncedSearch]);
 
   if (!authorized) return null;
 
@@ -248,7 +257,7 @@ export default function GalleryPage() {
                 id={art.id}
                 title={art.title}
                 description={art.description}
-                imageUrl={art.imageUrl}
+                imageUrl={art.thumbnailUrl || art.imageUrl}
                 liked={likedIds.includes(art.id)}
                 role={role}
                 onToggle={toggleFavorite}
