@@ -95,7 +95,15 @@ export async function GET() {
 
     const all = await prisma.artwork.findMany();
 
-    const scored: ScoredArtwork[] = all.map((art: { tags: never[]; category: string | number; id: any; title: any; description: any; imageUrl: any; }) => {
+    const scored: ScoredArtwork[] = all.map(
+  (art: {
+    tags: string[];
+    category: string | null;
+    id: any;
+    title: any;
+    description: any;
+    imageUrl: any;
+  }) => {
       let raw = 0;
 
       const tags = art.tags || [];
