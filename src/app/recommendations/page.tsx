@@ -9,6 +9,8 @@ type Artwork = {
   description?: string;
   imageUrl: string;
   score?: number;
+  isAiFeatured?: boolean;
+  aiNotes?: string | null;
 };
 
 export default function RecommendationsPage() {
@@ -62,14 +64,14 @@ export default function RecommendationsPage() {
   if (items.length === 0) {
     return (
       <div className="text-center mt-10 text-gray-500">
-        Još uvijek nema dovoljno interakcija za generisanje preporuka.
+        Not enough interactions yet to generate recommendations.
       </div>
     );
   }
 
   const sorted = [...items].sort(
-  (a, b) => (b.score ?? 0) - (a.score ?? 0)
-);
+    (a, b) => (b.score ?? 0) - (a.score ?? 0)
+  );
 
   const strong = sorted.slice(0, 4);
   const weak = sorted.slice(4);
@@ -77,43 +79,53 @@ export default function RecommendationsPage() {
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
       <h1 className="text-3xl font-bold mb-2">
-        Preporučena umjetnička djela
+        Recommended Artworks
       </h1>
 
       <p className="text-gray-500 mb-6">
-        Preporuke su prilagođene vašim prethodnim interakcijama
+        Recommendations are personalized based on your previous interactions
       </p>
-
 
       {strong.length > 0 && (
         <div className="mb-10">
           <h2 className="text-xl font-semibold mb-3">
-            🔥 Najrelevantnije preporuke
+            🔥 Top Recommendations
           </h2>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {strong.map((art) => (
-              <div key={art.id} className="bg-white p-3 rounded-xl shadow">
-                <div className="text-xs text-green-600 mb-1">
-                  High confidence
+              <div key={art.id} className="bg-white p-3 rounded-xl shadow flex flex-col justify-between">
+                <div>
+                  <div className="text-xs text-green-600 mb-1">
+                    High confidence
+                  </div>
+
+                  <div className="text-xs text-gray-400 mb-2">
+                    Recommended based on your interests
+                  </div>
+
+                  <Card {...art} liked={false} onToggle={() => {}} role="USER" />
                 </div>
 
-                <div className="text-xs text-gray-400 mb-2">
-                  Preporučeno na osnovu vaših interesovanja
-                </div>
-
-                <Card {...art} liked={false} onToggle={() => {}} role="USER" />
+                {/* --- AI CURATOR NOTE BOX --- */}
+                {art.isAiFeatured && art.aiNotes && (
+                  <div className="mt-3 bg-amber-50 border border-amber-200 text-amber-900 p-3 rounded-lg text-xs italic shadow-inner">
+                    <span className="font-semibold not-italic block text-amber-950 mb-1">
+                      ✨ AI Curator's Note:
+                    </span>
+                    "{art.aiNotes}"
+                  </div>
+                )}
               </div>
             ))}
           </div>
         </div>
       )}
 
-
       {weak.length > 0 && (
         <div>
           <h2 className="text-xl font-semibold mb-3">
-            💡 Istražite nešto novo
+            💡 Explore Something New
           </h2>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -124,7 +136,7 @@ export default function RecommendationsPage() {
                 </div>
 
                 <div className="text-xs text-gray-400 mb-2">
-                  Predlog za istraživanje novih umjetničkih pravaca
+                  Suggested for exploring new art styles
                 </div>
 
                 <Card {...art} liked={false} onToggle={() => {}} role="USER" />
